@@ -3,7 +3,7 @@
 __pycache__
 *temp*
 *test*
-data/
+data/*
 !data/*.py
 
 api_tokens.yaml
