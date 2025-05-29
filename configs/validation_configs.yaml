@@ -1,0 +1,7 @@
+solver:
+  time_limit: 10 # Time Limit for solver to solve
+  solver_name: "gurobi_persistent"  # gurobi, appsi_highs, glpk, gurobi_persistent
+  max_time_out: 2000 # Time Limit to allow the solver to solve the inital solve for each instance
+  apply_lazy: true # Apply lazy constraints to the solver
+  lazy_value: 1 # Value of the lazy constraints
+  pool_solutions : 2

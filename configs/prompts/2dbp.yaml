@@ -1,0 +1,75 @@
+2dbp: |
+  def create_model(n, W, H, w, h):
+      """
+      Create a Pyomo model for the 2D Bin Packing Problem.
+
+      Parameters:
+        n : int
+            Number of items.
+        W : float
+            Bin width.
+        H : float
+            Bin height.
+        w : dict
+            Widths of items (indexed from 1 to n).
+        h : dict
+            Heights of items (indexed from 1 to n).
+
+      Note:
+        It is assumed that the items are sorted and renumbered by non-increasing h[j] values.
+      """
+      model = pyo.ConcreteModel()
+      model.N = pyo.RangeSet(1, n)
+
+      # Sets for horizontal (x) and vertical (z) relative placements.
+      model.X = pyo.Set(dimen=2, initialize=lambda m: ((i, j) for i in m.N for j in m.N if i < j))
+      model.Z = pyo.Set(dimen=2, initialize=lambda m: ((k, i) for k in m.N for i in m.N if k < i))
+
+      # Decision variables.
+      # x[i,j]: item j is placed to the right of item i.
+      # y[j]: item j is the first in its row.
+      # q[k]: a bin starts with item k (and contributes to the bin count).
+      # z[k,i]: item i is placed in a row below item k.
+      model.x = pyo.Var(model.X, domain=pyo.Binary)
+      model.y = pyo.Var(model.N, domain=pyo.Binary)
+      model.q = pyo.Var(model.N, domain=pyo.Binary)
+      model.z = pyo.Var(model.Z, domain=pyo.Binary)
+
+      # Objective: minimize the number of bins used.
+      model.obj = pyo.Objective(expr=sum(model.q[k] for k in model.N), sense=pyo.minimize)
+
+      # Each item is either placed to the right of a previous item or is the first in its row.
+      def one_position_rule(model, j):
+          return sum(model.x[i, j] for i in model.N if i < j) + model.y[j] == 1
+
+      model.one_position = pyo.Constraint(model.N, rule=one_position_rule)
+
+      # Horizontal capacity constraint:
+      # For each item, ensure the total widths of items to its right do not exceed available space.
+      def width_capacity_rule(model, i):
+          if i == n:
+              return pyo.Constraint.Skip
+          return sum(w[j] * model.x[i, j] for j in model.N if j > i) <= (W - w[i]) * model.y[i]
+
+      model.width_capacity = pyo.Constraint(model.N, rule=width_capacity_rule)
+
+      # Link horizontal placements with vertical decisions:
+      # The row assignment variable q is linked with the sum of vertical placements z.
+      def row_assignment_rule(model, i):
+          return sum(model.z[k, i] for k in model.N if k < i) + model.q[i] == model.y[i]
+
+      model.row_assignment = pyo.Constraint(model.N, rule=row_assignment_rule)
+
+      # Vertical capacity constraint:
+      # For each starting row k, ensure that items placed below do not exceed the bin height.
+      def height_capacity_rule(model, k):
+          if k == n:
+              return pyo.Constraint.Skip
+          return sum(h[i] * model.z[k, i] for i in model.N if i > k) <= (H - h[k]) * model.q[k]
+
+      model.height_capacity = pyo.Constraint(model.N, rule=height_capacity_rule)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return model

@@ -1,0 +1,50 @@
+mclp: |
+  def create_model(I, J, Ni, a, P):
+      """
+      Construct a Pyomo model for the Maximal Covering Location Problem (MCLP).
+
+      I : iterable
+          Indices of demand nodes.
+      J : iterable
+          Indices of potential facility locations.
+      Ni : dict
+          Dictionary mapping each demand node i in I to a subset of J that can cover it.
+      a : dict
+          Dictionary mapping each demand node i in I to its weight or population.
+      P : int
+          Number of facilities to open.
+      """
+      m = pyo.ConcreteModel(name="Maximal_Covering_Location_Problem")
+
+      # Sets
+      m.I = pyo.Set(initialize=I)  # Set of demand nodes
+      m.J = pyo.Set(initialize=J)  # Set of candidate facility locations
+      m.Ni = pyo.Set(m.I, initialize=lambda _, i: Ni[i])  # For each demand node i, feasible facility locations that cover i
+
+      # Parameters
+      m.a = pyo.Param(m.I, initialize=a, within=pyo.NonNegativeReals)  # Population or weight at each demand node
+      m.P = pyo.Param(initialize=P, within=pyo.PositiveIntegers)       # Number of facilities to open
+
+      # Decision variables
+      m.x = pyo.Var(m.J, domain=pyo.Binary)  # x[j] = 1 if facility j is opened
+      m.y = pyo.Var(m.I, domain=pyo.Binary)  # y[i] = 1 if demand i is covered
+
+      # Objective: maximize total covered demand
+      def obj_rule(model):
+          return sum(model.a[i] * model.y[i] for i in model.I)
+      m.obj = pyo.Objective(rule=obj_rule, sense=pyo.maximize)
+
+      # Constraint: demand node i can be marked covered only if at least one of its covering facilities is opened
+      def cover_rule(model, i):
+          return sum(model.x[j] for j in model.Ni[i]) >= model.y[i]
+      m.Cover = pyo.Constraint(m.I, rule=cover_rule)
+
+      # Constraint: exactly P facilities must be opened
+      def budget_rule(model):
+          return sum(model.x[j] for j in model.J) == model.P
+      m.Budget = pyo.Constraint(rule=budget_rule)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return m

@@ -1,0 +1,58 @@
+cwlp: |
+  def create_model(I, J, d, u, f, c):
+    """
+    Capacitated Warehouse-Location Problem (unsplittable demands).
+
+    Parameters
+    ----------
+    I : iterable
+        Customer indices (1-based).
+    J : iterable
+        Warehouse indices (1-based).
+    d : dict[i -> demand]  # i = customer
+    u : dict[j -> capacity]  # j = warehouse
+    f : dict[j -> fixed-opening cost]
+    c : dict[(i, j) -> total cost to assign all of i's demand to warehouse j]
+
+    Notes
+    -----
+    Each customer is assigned to exactly one warehouse.
+    """
+    m = pyo.ConcreteModel()
+
+    # Sets
+    m.I = pyo.Set(initialize=I, ordered=True)  # customers
+    m.J = pyo.Set(initialize=J, ordered=True)  # warehouses
+
+    # Parameters
+    m.d = pyo.Param(m.I, initialize=d, within=pyo.PositiveReals)
+    m.u = pyo.Param(m.J, initialize=u, within=pyo.PositiveReals)
+    m.f = pyo.Param(m.J, initialize=f, within=pyo.NonNegativeReals)
+    m.c = pyo.Param(m.I, m.J, initialize=c, within=pyo.NonNegativeReals)
+
+    # Variables
+    m.x = pyo.Var(m.I, m.J, domain=pyo.Binary)  # 1 iff customer i assigned to warehouse j
+    m.y = pyo.Var(m.J, domain=pyo.Binary)  # 1 iff warehouse j open
+
+    # Objective
+    m.Obj = pyo.Objective(
+        expr=sum(m.f[j] * m.y[j] for j in m.J)
+        + sum(m.c[i, j] * m.x[i, j] for i in m.I for j in m.J),
+        sense=pyo.minimize,
+    )
+
+    # Constraints
+    def _assign_rule(model, i):
+        return sum(model.x[i, j] for j in model.J) == 1
+
+    m.Assign = pyo.Constraint(m.I, rule=_assign_rule)
+
+    def _capacity_rule(model, j):
+        return sum(model.d[i] * model.x[i, j] for i in model.I) <= model.u[j] * model.y[j]
+
+    m.Cap = pyo.Constraint(m.J, rule=_capacity_rule)
+
+    # Additional constraints placeholder.
+  {added_constraint}
+
+    return m

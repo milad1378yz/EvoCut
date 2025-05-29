@@ -5,3 +5,7 @@ __pycache__
 *test*
 data/
 !data/*.py
+
+api_tokens.yaml
+
+!*template*

@@ -1,0 +1,47 @@
+tsp: |
+  def create_model(n, c):
+      """
+      Create a Pyomo model for the Traveling Salesman Problem (TSP) using the MTZ formulation with node 1 as depot.
+     
+      Parameters:
+        n: int, number of nodes (cities).
+        c: dict, cost matrix where c[i, j] is the travel cost from node i to node j.
+     
+      Returns:
+        model: Pyomo ConcreteModel.
+      """
+
+      model = pyo.ConcreteModel()
+      model.N = pyo.RangeSet(1, n)  # Set of nodes
+      model.A = pyo.Set(initialize=[(i, j) for i in model.N for j in model.N if i != j])  # Set of arcs (i, j)
+
+      # Decision variables: x[i,j]=1 if arc (i,j) is used; u[i] is the position of node i in the tour.
+      model.x = pyo.Var(model.A, domain=pyo.Binary)
+      model.u = pyo.Var(model.N, domain=pyo.NonNegativeIntegers)
+
+      # Objective: Minimize total travel cost.
+      model.obj = pyo.Objective(expr=sum(c[i, j] * model.x[i, j] for (i, j) in model.A), sense=pyo.minimize)
+
+      # Each node has exactly one outgoing arc.
+      model.outgoing_arc = pyo.Constraint(model.N, rule=lambda m, i: sum(m.x[i, j] for j in m.N if j != i) == 1)
+      # Each node has exactly one incoming arc.
+      model.incoming_arc = pyo.Constraint(model.N, rule=lambda m, j: sum(m.x[i, j] for i in m.N if i != j) == 1)
+
+      # MTZ Subtour elimination constraints (applied only for non-depot nodes).
+      def mtz_rule(model, i, j):
+          if i != j and i != 1 and j != 1:
+              return model.u[i] - model.u[j] + n * model.x[i, j] <= n - 1
+          return pyo.Constraint.Skip
+      model.subtour_elimination = pyo.Constraint(model.N, model.N, rule=mtz_rule)
+
+      # Bounds on u for non-depot nodes: u[i] in [2, n] for i != 1.
+      model.u_lower = pyo.Constraint(model.N, rule=lambda m, i: m.u[i] >= 2 if i != 1 else pyo.Constraint.Skip)
+      model.u_upper = pyo.Constraint(model.N, rule=lambda m, i: m.u[i] <= n if i != 1 else pyo.Constraint.Skip)
+
+      # Fix depot's position: set u[1] == 1.
+      model.u_fix = pyo.Constraint(expr=model.u[1] == 1)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return model

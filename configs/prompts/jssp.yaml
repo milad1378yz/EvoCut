@@ -1,0 +1,79 @@
+jssp: |
+  def create_model(n_jobs, n_machines, times, machines):
+      """
+      Build a Pyomo model for the 0-based Job-Shop Scheduling Problem.
+
+      Parameters
+      n_jobs      : int                   # number of jobs (rows)
+      n_machines  : int                   # number of machines (columns)
+      times       : list[list[int]]       # p[j][k]   processing time of op k in job j
+      machines    : list[list[int]]       # m[j][k]   machine (0-based) that op k of job j uses
+
+      Returns:
+      model : pyo.ConcreteModel
+      """
+      model = pyo.ConcreteModel()
+
+      #  Sets 
+      model.J = pyo.RangeSet(0, n_jobs    - 1)              # jobs
+      model.K = pyo.RangeSet(0, n_machines - 1)             # position in the job
+      model.O = pyo.Set(initialize=[(j, k) for j in model.J for k in model.K],
+                        dimen=2)                             # all operations
+
+      #  Parameters 
+      model.p = pyo.Param(model.O,
+                          initialize=lambda m, j, k: times[j][k],
+                          within=pyo.PositiveIntegers)
+
+      model.mach = pyo.Param(model.O,
+                             initialize=lambda m, j, k: machines[j][k],
+                             within=pyo.NonNegativeIntegers)
+
+      big_M = sum(sum(row) for row in times)                # simple safe big-M
+      model.bigM = pyo.Param(initialize=big_M, mutable=True)
+
+      #  Variables 
+      model.S     = pyo.Var(model.O, domain=pyo.NonNegativeReals)  # start times
+      model.Cmax  = pyo.Var(domain=pyo.NonNegativeReals)
+
+      # y[(j,k,j',k')] is defined only when the two ops share a machine
+      def pair_gen():
+          for (j1, k1) in model.O:
+              for (j2, k2) in model.O:
+                  if (j1, k1) < (j2, k2) and machines[j1][k1] == machines[j2][k2]:
+                      yield (j1, k1, j2, k2)
+      model.Pairs = pyo.Set(initialize=list(pair_gen()), dimen=4)
+
+      model.y = pyo.Var(model.Pairs, domain=pyo.Binary)
+
+      #  Objective 
+      model.obj = pyo.Objective(expr=model.Cmax, sense=pyo.minimize)
+
+      #  Constraints 
+      # (1) precedence inside each job
+      def prec_rule(m, j, k):
+          if k < n_machines - 1:
+              return m.S[j, k + 1] >= m.S[j, k] + m.p[j, k]
+          return pyo.Constraint.Skip
+      model.precedence = pyo.Constraint(model.J, model.K, rule=prec_rule)
+
+      # (2) disjunctive (machine) constraints
+      def disj1_rule(m, j1, k1, j2, k2):
+          return (m.S[j1, k1] + m.p[j1, k1]
+                  <= m.S[j2, k2] + m.bigM * (1 - m.y[j1, k1, j2, k2]))
+      model.disj1 = pyo.Constraint(model.Pairs, rule=disj1_rule)
+
+      def disj2_rule(m, j1, k1, j2, k2):
+          return (m.S[j2, k2] + m.p[j2, k2]
+                  <= m.S[j1, k1] + m.bigM *      m.y[j1, k1, j2, k2])
+      model.disj2 = pyo.Constraint(model.Pairs, rule=disj2_rule)
+
+      # (3) makespan definition
+      def makespan_rule(m, j):
+          return m.Cmax >= m.S[j, n_machines - 1] + m.p[j, n_machines - 1]
+      model.makespan = pyo.Constraint(model.J, rule=makespan_rule)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return model

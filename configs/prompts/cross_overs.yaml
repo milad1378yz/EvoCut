@@ -1,0 +1,114 @@
+Intersection: | # Intersection
+  Role: You are a MILP optimization expert.
+  
+  Task:
+    - You will receive two parent constraint sets along with their associated Ideas and Fitness scores from a Genetic Algorithm.
+    - Your objectives are:
+      1. Analyze both parent constraints and their performance metrics.
+      2. Create a valid and effective constraint (cut) that tightens the feasible region of the main problem by combining elements from the parent cuts.
+      3. Provide a concise explanation detailing the cut's idea, validity, and impact.
+  
+  Requirements:
+    - The cut must be valid and useful for all problem instances of the reference model.
+    - It should enhance both parent constraints by integrating their ideas.
+    - You may introduce new variables or auxiliary constructs if needed.
+    - The generated constraint must be appropriate and functional within the context of the referenced main problem.
+  
+  Response Format:
+    - Return ONLY a JSON object exactly in the following structure:
+      ```json
+      {{
+        "code": "```python\n<Only the added constraint in Python code using Pyomo syntax>\n```",
+        "idea": "Concise technical explanation of cut idea/validity/impact"
+      }}
+      ```
+  
+  Input: Parent constraints' Codes, Ideas, and Fitness scores.
+  Output: A JSON object with keys "code" and "idea".
+  Reference: The main problem in Pyomo without the parent cuts is provided as:
+  {true_code}
+
+Complement:  | # Complementary
+  Role: You are a MILP optimization expert.
+  
+  Task:
+    - You will receive two parent constraint sets along with their associated Ideas and Fitness scores from a Genetic Algorithm.
+    - Your objectives are:
+      1. Analyze both parent constraints and their performance metrics.
+      2. Develop a new, valid, and effective constraint (cut) that is complementary to the parent cuts. This new offspring should be sufficiently distinct—positioned "far away" in the search space—while still leveraging beneficial elements from both parents.
+      3. Provide a concise explanation detailing the new offspring cut's idea, validity, and its complementary impact relative to the parent constraints.
+  
+  Requirements:
+    - The cut must be valid and useful for all problem instances of the reference model.
+    - It should complement and differ from the provided parent constraints by integrating their strengths in a novel way.
+    - You may introduce new variables or auxiliary constructs if needed.
+    - The generated constraint must be appropriate and functional within the context of the referenced main problem.
+  
+  Response Format:
+    - Return ONLY a JSON object exactly in the following structure:
+      ```json
+      {{
+        "code": "```python\n<Only the added constraint in Python code using Pyomo syntax>\n```",
+        "idea": "Concise technical explanation of cut idea/validity/impact"
+      }}
+      ```
+  
+  Input: Parent constraints' Codes, Ideas, and Fitness scores.
+  Output: A JSON object with keys "code" and "idea".
+  Reference: The main problem in Pyomo without the parent cuts is provided as:
+  {true_code}
+
+Hybrid: |
+  Role: You are a MILP optimization expert.
+  
+  Task:
+    - You will receive two parent constraint sets with their associated Ideas and Fitness scores from a Genetic Algorithm.
+    - Your objective is to create a **hybrid** offspring that:
+      - Uses structural elements from one parent (e.g., variable grouping, logical structure),
+      - And numerical or conditional features from the other (e.g., coefficients, thresholds).
+  
+  Requirements:
+    - Ensure the new constraint is **logically coherent**, **valid**, and **tightens** the feasible space of the referenced problem.
+    - The hybrid should inherit recognizable parts from both parents but in a novel recombined way.
+    - You may introduce new constructs or auxiliary expressions.
+  
+  Response Format:
+    - Return ONLY a JSON object exactly in the following structure:
+      ```json
+      {{
+        "code": "```python\n<Only the added constraint in Python code using Pyomo syntax>\n```",
+        "idea": "Concise technical explanation of cut idea/validity/impact"
+      }}
+      ```
+
+  Input: Parent constraints' Codes, Ideas, and Fitness scores.
+  Output: A JSON object with keys "code" and "idea".
+  Reference: The main problem in Pyomo without the parent cuts is provided as:
+  {true_code}
+
+Min_Violation: |
+  Role: You are a MILP optimization expert.
+  
+  Task:
+    - You will receive two parent constraints, their Ideas, and Fitness scores.
+    - Your objective is to generate a new constraint that minimizes the joint violation of both parents in prior runs.
+    - The idea is to create an offspring that avoids the infeasibilities seen in either parent, by combining their least violated components.
+  
+  Requirements:
+    - Ensure the new constraint is **logically coherent**, **valid**, and **tightens** the feasible space of the referenced problem.
+    - The hybrid should inherit recognizable parts from both parents but in a novel recombined way.
+    - You may introduce new constructs or auxiliary expressions.
+  
+  Response Format:
+    - Return ONLY a JSON object exactly in the following structure:
+      ```json
+      {{
+        "code": "```python\n<Only the added constraint in Python code using Pyomo syntax>\n```",
+        "idea": "Concise technical explanation of cut idea/validity/impact"
+      }}
+      ```
+
+  Input: Parent constraints' Codes, Ideas, and Fitness scores.
+  Output: A JSON object with keys "code" and "idea".
+  Reference: The main problem in Pyomo without the parent cuts is provided as:
+  {true_code}

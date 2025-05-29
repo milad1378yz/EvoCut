@@ -1,0 +1,66 @@
+mcnd: |
+  def create_model(N, A, K, c, f, u, d, O, D):
+      """
+      Create a Pyomo model for the Multi-Commodity Network Design (MCND) problem.
+
+      Parameters:
+          N : set of nodes.
+          A : set of arcs (tuples (i,j)).
+          K : set of commodities.
+          c : dict, cost per unit transported on arc (i,j).
+          f : dict, fixed cost to use arc (i,j).
+          u : dict, capacity of arc (i,j).
+          d : dict, demand for each commodity k.
+          O : dict, origin node for commodity k.
+          D : dict, destination node for commodity k.
+
+      Returns:
+          model : Pyomo ConcreteModel.
+      """
+      model = pyo.ConcreteModel()
+
+      # Sets
+      model.N = pyo.Set(initialize=N)
+      model.A = pyo.Set(initialize=A)
+      model.K = pyo.Set(initialize=K)
+
+      # Parameters (adding input variables as model attributes)
+      model.c = pyo.Param(model.A, initialize=c)
+      model.f = pyo.Param(model.A, initialize=f)
+      model.u = pyo.Param(model.A, initialize=u)
+      model.d = pyo.Param(model.K, initialize=d)
+      model.O = pyo.Param(model.K, initialize=O)
+      model.D = pyo.Param(model.K, initialize=D)
+
+      # Variables
+      model.x = pyo.Var(model.A, model.K, domain=pyo.NonNegativeReals)
+      model.y = pyo.Var(model.A, domain=pyo.Binary)
+
+      # Objective Function: minimize transportation and fixed costs
+      model.obj = pyo.Objective(
+          expr=sum(c[i, j] * model.x[i, j, k] for (i, j) in model.A for k in model.K)
+          + sum(f[i, j] * model.y[i, j] for (i, j) in model.A),
+          sense=pyo.minimize
+      )
+
+      # Flow conservation constraints
+      def flow_rule(model, i, k):
+          inflow = sum(model.x[j, i, k] for (j, i2) in model.A if i2 == i)
+          outflow = sum(model.x[i, j, k] for (i1, j) in model.A if i1 == i)
+          if i == model.O[k]:
+              return outflow == model.d[k]
+          elif i == model.D[k]:
+              return inflow == model.d[k]
+          else:
+              return outflow - inflow == 0
+      model.flow_conservation = pyo.Constraint(model.N, model.K, rule=flow_rule)
+
+      # Arc capacity constraints
+      def capacity_rule(model, i, j):
+          return sum(model.x[i, j, k] for k in model.K) <= u[i, j] * model.y[i, j]
+      model.arc_capacity = pyo.Constraint(model.A, rule=capacity_rule)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return model
