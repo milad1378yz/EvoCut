@@ -1,6 +1,6 @@
 # EvoCut
 
-**EvoCut** is a Python library that enhances Mixed-Integer Linear Programming (MILP) solving by injecting valid inequalities (cuts) into the model, effectively reducing the number of explored nodes and improving solver efficiency.
+**EvoCut** is a Python library that enhances Mixed-Integer Linear Programming (MILP) solving by injecting valid inequalities (cuts) into the model, effectively reducing the LP relaxation set and improving solver efficiency.
 
 ## Installation
 
