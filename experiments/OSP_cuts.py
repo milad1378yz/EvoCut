@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore")
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Validate GA cuts on a new dataset (quick-success count only)."
+        description="Check optimal solution preservation rate of cuts on a new dataset (quick-success count only)."
     )
     parser.add_argument(
         "--validation_config",

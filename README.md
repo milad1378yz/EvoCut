@@ -1,6 +1,6 @@
 # EvoCut
 
-**EvoCut** is a Python library that enhances Mixed-Integer Linear Programming (MILP) solving by injecting valid inequalities (cuts) into the model, effectively reducing the LP relaxation set and improving solver efficiency.
+**EvoCut** is a Python library that enhances Mixed-Integer Linear Programming (MILP) solving by injecting accleration inequalities (cuts) into the model, effectively reducing the LP relaxation set and improving solver efficiency.
 
 ## Installation
 
@@ -41,12 +41,12 @@ python src/main.py <args>
 
 Replace `<args>` with your desired configuration and options.
 
-### Validate Cuts
+### Verificatrion Cuts
 
-To validate the performance of the generated cuts:
+To check optimal solution preservation rate of the generated cuts:
 
 ```bash
-python experiments/validate_cuts.py <args>
+python experiments/OSP_cuts.py <args>
 ```
 
 ### Evaluate on Test Data
