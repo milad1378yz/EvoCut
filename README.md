@@ -1,58 +1,91 @@
+
 # EvoCut
 
-**EvoCut** is a Python library that enhances Mixed-Integer Linear Programming (MILP) solving by injecting accleration inequalities (cuts) into the model, effectively reducing the LP relaxation set and improving solver efficiency.
+**EvoCut** is a Python library that accelerates Mixed-Integer Linear Programming (MILP) by injecting problem-specific cutting planes into the LP relaxation. These cuts reduce the feasible set of the LP relaxation and improve solver efficiency.
+
 
 ## Installation
 
-### Step 1: Install Dependencies
+### 1) (Optional) Create a virtual environment
+```bash
+python -m venv .venv
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
+````
+
+### 2) Install dependencies
 
 ```bash
 pip install -r requirements.txt
-````
+```
 
-> **Note**: Python 3.9 is recommended.
-> You must also install [Gurobi](https://www.gurobi.com/) and ensure it is properly licensed on your system.
+> **Note:** Python 3.9 recommended.
+> Requires a licensed MILP solver (e.g., [Gurobi](https://www.gurobi.com/)).
 
-### Step 2: Configure Settings
+---
 
-In the `configs/` directory:
+## Configuration
 
-* Copy each file that includes `_template` in its name.
-* Remove `_template` from the filename.
-* Fill in your credentials and modify hyperparameters or prompts as needed.
+In the [`configs/`](./configs) directory:
+
+1. Copy each file whose name contains `_template`.
+2. Rename the copy (remove `_template`).
+3. Fill in credentials and hyperparameters as needed.
+
+---
 
 ## Data Preparation
 
-To download and preprocess data, run:
+Use the relevant preprocessing script in `data/`:
 
 ```bash
 python data/data_prepare<suffix>.py
 ```
 
-Replace `<suffix>` with the appropriate suffix found in the `data/` directory (e.g., options containing `rand` or other indicators).
+Replace `<suffix>` with the correct option for your dataset variant (e.g., `rand`).
+
+---
 
 ## Usage
 
-To run EvoCut for a specific problem:
+Run EvoCut on a problem instance:
 
 ```bash
 python src/main.py <args>
 ```
 
-Replace `<args>` with your desired configuration and options.
+See all options with:
 
-### Verificatrion Cuts
+```bash
+python src/main.py -h
+```
 
-To check optimal solution preservation rate of the generated cuts:
+---
+
+## Verification of Cuts (OSP)
+
+To check the **optimal solution preservation rate** of generated cuts:
 
 ```bash
 python experiments/OSP_cuts.py <args>
 ```
 
-### Evaluate on Test Data
+---
 
-To evaluate EvoCut on test data:
+## Evaluation on Test Data
+
+Evaluate EvoCut on held-out instances:
 
 ```bash
 python experiments/evaluate_cut.py <args>
 ```
+
+---
+
+## Reproducibility
+
+* Determinism: seeds are configurable in configs or CLI flags.
+* Hardware/solver versions may affect runtime but not correctness.
+* Minimal dependencies ensure reproducibility across machines.
+
+
+
