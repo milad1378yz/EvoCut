@@ -3,30 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EvoCut: Strengthening Integer Programs via Evolution‑Guided Language Models</title>
+  <title>EvoCut: Strengthening Integer Programs via Evolution-Guided Language Models</title>
   <meta name="description" content="Project page for EvoCut — a framework that uses evolutionary search guided by LLMs to generate acceleration cuts for integer programs." />
 
-  <!-- Open Graph / Twitter (you can swap the image later; the page works without it) -->
-  <meta property="og:title" content="EvoCut: Strengthening Integer Programs via Evolution‑Guided Language Models" />
-  <meta property="og:description" content="Evolution‑guided LLMs for integer programming; highlights, method, and code." />
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="EvoCut: Strengthening Integer Programs via Evolution-Guided Language Models" />
+  <meta property="og:description" content="Evolution-guided LLMs for integer programming; highlights, method, and code." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="assets/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <style>
     :root{
-      --bg: #0a0b0e;
-      --bg-soft: #11131a;
-      --fg: #f5f7fa;
-      --muted: #b9c0cf;
-      --brand: #7aa2ff;
-      --brand-2: #91f2d6;
-      --card: #151827;
-      --border: #23283d;
-      --code: #0f1220;
-      --link: #a7c2ff;
-      --accent: #f0f3ff;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --bg:#0a0b0e; --bg-soft:#11131a; --fg:#f5f7fa; --muted:#b9c0cf; --brand:#7aa2ff; --brand-2:#91f2d6;
+      --card:#151827; --border:#23283d; --code:#0f1220; --link:#a7c2ff; --accent:#f0f3ff; --shadow:0 10px 30px rgba(0,0,0,.35)
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
@@ -61,7 +51,35 @@
     .tiny{font-size:12px}
     .toc a{margin-right:12px}
     .copy{cursor:pointer;border:1px solid var(--border);background:var(--bg-soft);padding:6px 10px;border-radius:8px;margin-left:8px}
-    .badge{display:inline-block;padding:2px 8px;font-size:12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-soft);color:var(--accent)}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:2px 8px;font-size:12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-soft);color:var(--accent)}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--bg-soft);font-size:12px}
+    figure{margin:0}
+    .fig{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+    .fig > .card{flex:1 1 340px}
+    .tbl{width:100%;border-collapse:collapse}
+    .tbl th,.tbl td{border-bottom:1px solid var(--border);padding:10px;text-align:left}
+    .tbl th{color:var(--accent);font-weight:600}
+    .svgwrap{display:block;max-width:100%;border-radius:12px;border:1px solid var(--border);background:var(--bg-soft);padding:12px}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
+    .note{border-left:3px solid var(--brand);padding:12px 14px;border-radius:8px;background:rgba(122,162,255,.06)}
+    /* tiny interactive grid for IMO6 */
+    .imo-grid{--n:9; --gap:2px; display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:var(--gap); background:var(--border); padding:var(--gap); border-radius:12px}
+    .imo-layer{position:relative}
+    .imo-canvas{position:absolute; inset:0; pointer-events:none}
+    .imo-rect{
+      position:absolute; border:2px solid #91f2d6; background:rgba(145,242,214,.10);
+      border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.25)
+    }
+    .imo-hole-dot{position:absolute; width:10px; height:10px; border-radius:50%;
+      background:linear-gradient(135deg,#ffb3c1,#ffd6a5); border:2px solid #f7bfbf; transform:translate(-50%,-50%)}
+    .imo-controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0}
+    .imo-controls textarea{width:100%; max-width:680px; height:140px; background:var(--code); color:var(--fg);
+      border:1px solid var(--border); border-radius:10px; padding:10px; font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas}
+    .imo-controls .btn-mini{padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-soft)}
+    .imo-cell{aspect-ratio:1/1; background:var(--card); border:1px solid var(--border)}
+    .imo-hole{background:linear-gradient(135deg,#ffb3c1,#ffd6a5);border-color:#f7bfbf}
+    .legend{display:flex;gap:12px;align-items:center}
+    .sample-row{display:flex;gap:10px;flex-wrap:wrap}
   </style>
 
   <script>
@@ -70,9 +88,103 @@
       navigator.clipboard.writeText(el.innerText.trim())
         .then(()=>{const b=document.getElementById('copybtn'); b.textContent='Copied ✓'; setTimeout(()=>b.textContent='Copy',1600);});
     }
+
+    // Draw simple bar chart for results (unchanged)
+    function drawResults(){
+      const data=[
+        {name:'TSP', val:57},
+        {name:'CWLP', val:46},
+        {name:'JSSP', val:37},
+        {name:'MCND', val:17}
+      ];
+      const svg=document.getElementById('resvg');
+      const w=svg.clientWidth||720, h=260, pad=36;
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      for(let y=0;y<=60;y+=10){
+        const gy=document.createElementNS('http://www.w3.org/2000/svg','line');
+        gy.setAttribute('x1',pad); gy.setAttribute('x2',w-pad);
+        gy.setAttribute('y1',h-pad-(y*(h-2*pad)/60)); gy.setAttribute('y2',h-pad-(y*(h-2*pad)/60));
+        gy.setAttribute('stroke','#23283d'); gy.setAttribute('stroke-width','1'); svg.appendChild(gy);
+      }
+      const bw=(w-2*pad)/data.length*0.6, gap=(w-2*pad)/data.length*0.4;
+      data.forEach((d,i)=>{
+        const x=pad+i*(bw+gap);
+        const bh=(d.val/60)*(h-2*pad);
+        const y=h-pad-bh;
+        const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',bw); rect.setAttribute('height',bh);
+        rect.setAttribute('rx',8); rect.setAttribute('fill','url(#grad)');
+        svg.appendChild(rect);
+        const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x',x+bw/2); t.setAttribute('y',h-pad+16);
+        t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','12'); t.setAttribute('fill','#b9c0cf'); t.textContent=d.name; svg.appendChild(t);
+        const v=document.createElementNS('http://www.w3.org/2000/svg','text');
+        v.setAttribute('x',x+bw/2); v.setAttribute('y',y-6);
+        v.setAttribute('text-anchor','middle'); v.setAttribute('font-size','12'); v.setAttribute('fill','#f5f7fa'); v.textContent=d.val+'%'; svg.appendChild(v);
+      });
+    }
+
+    /* ---------- NEW: IMO 2025 P6 viewer (n = k^2) ---------- */
+
+    function svgel(tag, attrs={}) {
+      const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
+      return e;
+    }
+
+    function renderImoPattern(n){
+      const svg  = document.getElementById('imoSvg');
+      const note = document.getElementById('imoAnswer');
+      svg.innerHTML = '';
+
+      const k = Math.round(Math.sqrt(n));
+      if (k*k !== n || k < 2) {
+        note.textContent = 'This viewer draws the exact construction when n = k² (k ≥ 2). Try n = 4, 9, 25 …';
+        return;
+      }
+
+      const unit = Math.max(8, Math.min(18, Math.floor((svg.clientWidth||520)/n)));
+      const S    = n * unit;
+      svg.setAttribute('viewBox', `0 0 ${S} ${S}`);
+
+      svg.appendChild(svgel('rect', {x:0,y:0,width:S,height:S,fill:'#f6f2d4'}));
+      svg.appendChild(svgel('rect', {x:2,y:2,width:S-4,height:S-4,fill:'none',stroke:'#2b55ff','stroke-width':'3','vector-effect':'non-scaling-stroke'}));
+
+      const drawLine=(x1,y1,x2,y2)=>svg.appendChild(
+        svgel('line',{x1,y1,x2,y2,stroke:'#ff3b3b','stroke-width':'1.6','vector-effect':'non-scaling-stroke'})
+      );
+
+      for(let j=1;j<k;j++){
+        for(let t=0;t<k;t++){
+          const xx  = (j*k + t)*unit;
+          const y0  = (t*k)*unit, y1 = ((t+1)*k)*unit;
+            drawLine(xx, y0, xx, y1);
+            if(t<k-1) drawLine(xx, y1, xx + unit, y1);
+        }
+      }
+      for(let i=1;i<k;i++){
+        for(let s=0;s<k;s++){
+          const yy  = (i*k + s)*unit;
+          const x0  = (s*k)*unit, x1 = ((s+1)*k)*unit;
+          drawLine(x0, yy, x1, yy);
+          if(s<k-1) drawLine(x1, yy, x1, yy + unit);
+        }
+      }
+      for(let r=0;r<n;r++){
+        const c = (r%k)*k + Math.floor(r/k);
+        svg.appendChild(svgel('rect',{x:c*unit,y:r*unit,width:unit,height:unit,fill:'#000'}));
+      }
+
+      note.textContent = `For n = ${n} (= ${k}²), this construction uses the optimal number of rectangles: n + 2√n − 3 = ${n} + ${2*k} − 3 = ${n + 2*k - 3}.`;
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      drawResults();
+      renderImoPattern(9);
+    });
   </script>
 
-  <!-- Structured data for better previews -->
+  <!-- Structured data -->
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -99,11 +211,13 @@
       <nav>
         <div class="left">
           <span class="badge">EvoCut</span>
+          <a class="pill" href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener" title="Hugging Face Papers entry">🤗 Papers</a>
         </div>
         <div class="right toc tiny">
           <a href="#abstract">Abstract</a>
           <a href="#method">Method</a>
           <a href="#results">Results</a>
+          <a href="#imo6">IMO 2025 P6</a>
           <a href="#get-started">Get started</a>
           <a href="#citation">Citation</a>
         </div>
@@ -114,7 +228,7 @@
   <main>
     <div class="hero">
       <div class="wrap">
-        <h1>EvoCut: Strengthening Integer Programs via Evolution‑Guided Language Models</h1>
+        <h1>EvoCut: Strengthening Integer Programs via Evolution-Guided Language Models</h1>
         <div class="authors">Milad Yazdani · Mahdi Mostajabdaveh · Samin Aref · Zirui Zhou</div>
         <div class="subtitle">
           Automating the design of acceleration cuts by combining large language models with evolutionary search.
@@ -122,6 +236,7 @@
         <div class="cta">
           <a class="btn brand" href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">Read the Paper (PDF)</a>
           <a class="btn" href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv Page</a>
+          <a class="btn" href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">Hugging Face Papers</a>
           <a class="btn" href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">Code on GitHub</a>
           <a class="btn ghost" href="#get-started">Quickstart</a>
         </div>
@@ -136,11 +251,11 @@
         <h2>Abstract</h2>
         <div class="card">
           <p>
-            EvoCut automates the generation of <em>acceleration cuts</em> for mixed‑integer optimization by coupling an LLM with an evolutionary search:
-            (i) initialize a diverse population of candidate cuts; (ii) test each cut for feasibility preservation and pruning power on a verification set; and
-            (iii) evolve the population via crossover and mutation. In comparisons to standard practice, EvoCut achieves substantial reductions in optimality gap and faster high‑quality solutions, while requiring no human expert input.
+            EvoCut automates the generation of <em>acceleration cuts</em> for mixed-integer optimization by coupling an LLM with an evolutionary search:
+            (i) initialize a diverse population of candidate cuts; (ii) test each cut for feasibility/optimal-solution preservation and pruning power; and
+            (iii) evolve the population via crossover and mutation.
           </p>
-          <p class="tiny muted">See the paper for full details and results.</p>
+          <p class="tiny muted">See the paper for full details and results. Reported figures below mirror the arXiv manuscript. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a></p>
         </div>
       </div>
     </section>
@@ -151,38 +266,140 @@
         <div class="grid">
           <div class="card">
             <h3>1) Initialize</h3>
-            <p>An LLM‑based initializer proposes a diverse set of candidate cuts tailored to an instance class.</p>
+            <p>An LLM-based initializer proposes a diverse set of candidate cuts tailored to an instance class.</p>
           </div>
           <div class="card">
             <h3>2) Verify</h3>
-            <p>Each cut is empirically checked for <em>optimal‑solution preservation</em> and ability to eliminate fractional solutions on a verification set.</p>
+            <p>Each cut is empirically checked for <em>optimal-solution preservation</em> and its ability to eliminate fractional solutions on a verification set.</p>
           </div>
           <div class="card">
             <h3>3) Evolve</h3>
-            <p>Evolutionary operators (crossover &amp; mutation) refine candidates across iterations, guided by utility signals such as optimality‑gap reduction.</p>
+            <p>Evolutionary operators (crossover &amp; mutation) refine candidates across iterations, guided by utility signals like optimality-gap reduction.</p>
           </div>
+        </div>
+
+        <!-- Inline method figure (no external assets) -->
+        <div class="card" style="margin-top:16px">
+          <figure class="fig">
+            <div class="card" style="flex:1 1 280px">
+              <h3 style="margin-top:0">Flow diagram</h3>
+              <svg class="svgwrap" id="flow" viewBox="0 0 700 210" role="img" aria-label="EvoCut flow">
+                <defs>
+                  <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#7096ff"/><stop offset="100%" stop-color="#82ffd9"/>
+                  </linearGradient>
+                </defs>
+                <rect x="30" y="40" rx="14" width="180" height="110" fill="#151827" stroke="#23283d"/>
+                <text x="120" y="95" text-anchor="middle" fill="#f5f7fa" font-size="14">Initialize</text>
+
+                <polygon points="230,95 270,75 270,115" fill="#7096ff"/>
+                <rect x="290" y="40" rx="14" width="180" height="110" fill="#151827" stroke="#23283d"/>
+                <text x="380" y="80" text-anchor="middle" fill="#f5f7fa" font-size="14">Verify</text>
+                <text x="380" y="102" text-anchor="middle" fill="#b9c0cf" font-size="12">OSP + usefulness</text>
+
+                <polygon points="490,95 530,75 530,115" fill="#82ffd9"/>
+                <rect x="550" y="40" rx="14" width="120" height="110" fill="#151827" stroke="#23283d"/>
+                <text x="610" y="85" text-anchor="middle" fill="#f5f7fa" font-size="14">Evolve</text>
+                <text x="610" y="107" text-anchor="middle" fill="#b9c0cf" font-size="12">crossover/mutation</text>
+              </svg>
+              <p class="tiny muted" style="margin:10px 0 0">High-level schematic of EvoCut’s three phases.</p>
+            </div>
+
+            <div class="card" style="flex:1 1 280px">
+              <h3 style="margin-top:0">LLM configuration (paper)</h3>
+              <table class="tbl tiny">
+                <tr><th>Model</th><td><span class="mono">deepspeek-reasoning</span></td></tr>
+                <tr><th>Max output tokens</th><td>10,000</td></tr>
+                <tr><th>Total tokens (approx.)</th><td>~91M (cost ≈ $50, May 2025 pricing)</td></tr>
+              </table>
+              <p class="tiny muted" style="margin:8px 0 0">
+                Parameters as reported in Appendix G of the paper. <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">[PDF]</a>
+              </p>
+            </div>
+          </figure>
         </div>
       </div>
     </section>
 
     <section id="results">
       <div class="wrap">
-        <h2>Key Results (from the paper)</h2>
-        <div class="grid">
+        <h2>Results</h2>
+
+        <div class="grid" style="margin-bottom:12px">
           <div class="card">
             <div class="kpi">17–57% gap reduction</div>
-            <div class="muted tiny">within a fixed time budget</div>
+            <div class="muted tiny">within a fixed budget across four MILP benchmarks</div>
           </div>
           <div class="card">
             <div class="kpi">Up to 4× faster</div>
-            <div class="muted tiny">to reach the same solutions</div>
+            <div class="muted tiny">to reach the same target gap</div>
           </div>
           <div class="card">
             <div class="kpi">Generalizes</div>
-            <div class="muted tiny">reliable performance without expert input</div>
+            <div class="muted tiny">no expert-tuned parameters needed</div>
           </div>
         </div>
-        <p class="tiny muted">Refer to the arXiv manuscript for datasets, metrics, and complete evaluations.</p>
+
+        <div class="card">
+          <figure class="fig">
+            <div class="card" style="flex:1 1 320px">
+              <h3 style="margin-top:0">Gap reduction by benchmark</h3>
+              <svg id="resvg" class="svgwrap" width="100%" height="260" role="img" aria-label="Gap reduction bar chart">
+                <defs>
+                  <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#7096ff"/><stop offset="100%" stop-color="#82ffd9"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <p class="tiny muted" style="margin-top:8px">
+                Values reported in the abstract and results section of the paper. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a>
+              </p>
+            </div>
+            <div class="card" style="flex:1 1 320px">
+              <h3 style="margin-top:0">At a glance</h3>
+              <table class="tbl tiny">
+                <tr><th>Benchmark</th><th>Max gap ↓</th></tr>
+                <tr><td>TSP</td><td>57%</td></tr>
+                <tr><td>CWLP</td><td>46%</td></tr>
+                <tr><td>JSSP</td><td>37%</td></tr>
+                <tr><td>MCND</td><td>17%</td></tr>
+              </table>
+              <p class="tiny muted">Time-to-target speedup up to 4×, per abstract. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a></p>
+            </div>
+          </figure>
+        </div>
+
+        <p class="tiny muted" style="margin-top:8px">
+          Sources: abstract & appendix of the arXiv manuscript. See <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv</a> / <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">PDF</a>.
+        </p>
+      </div>
+    </section>
+
+    <section id="imo6">
+      <div class="wrap">
+        <h2>Appendix — IMO 2025 Problem 6 (Rectangular tiling with one hole per row & column)</h2>
+        <div class="card">
+          <p><strong>Problem (informal).</strong> On an <span class="mono">n × n</span> grid, place axis-aligned rectangular tiles (no overlaps) so that
+          each <em>row</em> and each <em>column</em> has exactly one uncovered unit square (“hole”). Minimize the number of tiles.</p>
+
+          <div class="note tiny">
+            For perfect squares <span class="mono">n = k²</span>, the minimum number of rectangles is
+            <span class="mono">n + 2√n − 3</span>.
+            Hence <strong>N=4 → 5 tiles</strong> and <strong>N=9 → 12 tiles</strong>.
+            (This viewer shows the matching construction.)
+          </div>
+
+          <div class="sample-row" style="margin:12px 0">
+            <a class="pill" href="#" onclick="renderImoPattern(4);return false;">Show N=4</a>
+            <a class="pill" href="#" onclick="renderImoPattern(9);return false;">Show N=9</a>
+            <a class="pill" href="#" onclick="renderImoPattern(25);return false;">Show N=25</a>
+            <span class="tiny muted">Red = rectangle boundaries, black = holes.</span>
+          </div>
+
+          <svg id="imoSvg" class="svgwrap" role="img"
+               aria-label="n×n tiling (n=k²) with one hole per row and column"></svg>
+          <p id="imoAnswer" class="tiny muted" style="margin-top:8px"></p>
+        </div>
       </div>
     </section>
 
@@ -199,7 +416,7 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 </code></pre>
-            <p class="tiny muted">Python 3.9 recommended. Requires access to a MILP solver (e.g., Gurobi) and filling config templates.</p>
+            <p class="tiny muted">Python 3.9+ recommended. Requires a MILP solver (e.g., Gurobi) and filling config templates.</p>
           </div>
 
           <div class="card">
@@ -229,12 +446,8 @@ python experiments/evaluate_cut.py &lt;args&gt;
 </code></pre>
           </div>
         </div>
-        <p class="tiny muted">
-          For the latest CLI flags and examples, see the repository README.
-        </p>
-        <p>
-          <a class="btn" href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">Open the GitHub Repo</a>
-        </p>
+        <p class="tiny muted">For the latest CLI flags and examples, see the repository README.</p>
+        <p><a class="btn" href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">Open the GitHub Repo</a></p>
       </div>
     </section>
 
@@ -251,7 +464,7 @@ python experiments/evaluate_cut.py &lt;args&gt;
   doi = {10.48550/arXiv.2508.11850}
 }</code></pre>
           <button id="copybtn" class="copy tiny" onclick="copyBibtex()">Copy</button>
-          <p class="tiny muted">You can also export BibTeX directly from the arXiv page.</p>
+          <p class="tiny muted">Also available on <a href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">Hugging Face Papers</a>.</p>
         </div>
       </div>
     </section>
@@ -270,6 +483,10 @@ python experiments/evaluate_cut.py &lt;args&gt;
           <div class="card">
             <h3>Code</h3>
             <p><a href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">github.com/milad1378yz/EvoCut</a></p>
+          </div>
+          <div class="card">
+            <h3>Hugging Face</h3>
+            <p><a href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">papers/2508.11850</a></p>
           </div>
           <div class="card">
             <h3>Issues / Questions</h3>
