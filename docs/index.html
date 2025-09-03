@@ -88,8 +88,7 @@
       navigator.clipboard.writeText(el.innerText.trim())
         .then(()=>{const b=document.getElementById('copybtn'); b.textContent='Copied ✓'; setTimeout(()=>b.textContent='Copy',1600);});
     }
-
-    // Draw simple bar chart for results (unchanged)
+    // Draw simple bar chart for results
     function drawResults(){
       const data=[
         {name:'TSP', val:57},
@@ -100,6 +99,7 @@
       const svg=document.getElementById('resvg');
       const w=svg.clientWidth||720, h=260, pad=36;
       svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      // bg grid
       for(let y=0;y<=60;y+=10){
         const gy=document.createElementNS('http://www.w3.org/2000/svg','line');
         gy.setAttribute('x1',pad); gy.setAttribute('x2',w-pad);
@@ -123,64 +123,8 @@
         v.setAttribute('text-anchor','middle'); v.setAttribute('font-size','12'); v.setAttribute('fill','#f5f7fa'); v.textContent=d.val+'%'; svg.appendChild(v);
       });
     }
-
-    /* ---------- NEW: IMO 2025 P6 viewer (n = k^2) ---------- */
-
-    function svgel(tag, attrs={}) {
-      const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
-      for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
-      return e;
-    }
-
-    function renderImoPattern(n){
-      const svg  = document.getElementById('imoSvg');
-      const note = document.getElementById('imoAnswer');
-      svg.innerHTML = '';
-
-      const k = Math.round(Math.sqrt(n));
-      if (k*k !== n || k < 2) {
-        note.textContent = 'This viewer draws the exact construction when n = k² (k ≥ 2). Try n = 4, 9, 25 …';
-        return;
-      }
-
-      const unit = Math.max(8, Math.min(18, Math.floor((svg.clientWidth||520)/n)));
-      const S    = n * unit;
-      svg.setAttribute('viewBox', `0 0 ${S} ${S}`);
-
-      svg.appendChild(svgel('rect', {x:0,y:0,width:S,height:S,fill:'#f6f2d4'}));
-      svg.appendChild(svgel('rect', {x:2,y:2,width:S-4,height:S-4,fill:'none',stroke:'#2b55ff','stroke-width':'3','vector-effect':'non-scaling-stroke'}));
-
-      const drawLine=(x1,y1,x2,y2)=>svg.appendChild(
-        svgel('line',{x1,y1,x2,y2,stroke:'#ff3b3b','stroke-width':'1.6','vector-effect':'non-scaling-stroke'})
-      );
-
-      for(let j=1;j<k;j++){
-        for(let t=0;t<k;t++){
-          const xx  = (j*k + t)*unit;
-          const y0  = (t*k)*unit, y1 = ((t+1)*k)*unit;
-            drawLine(xx, y0, xx, y1);
-            if(t<k-1) drawLine(xx, y1, xx + unit, y1);
-        }
-      }
-      for(let i=1;i<k;i++){
-        for(let s=0;s<k;s++){
-          const yy  = (i*k + s)*unit;
-          const x0  = (s*k)*unit, x1 = ((s+1)*k)*unit;
-          drawLine(x0, yy, x1, yy);
-          if(s<k-1) drawLine(x1, yy, x1, yy + unit);
-        }
-      }
-      for(let r=0;r<n;r++){
-        const c = (r%k)*k + Math.floor(r/k);
-        svg.appendChild(svgel('rect',{x:c*unit,y:r*unit,width:unit,height:unit,fill:'#000'}));
-      }
-
-      note.textContent = `For n = ${n} (= ${k}²), this construction uses the optimal number of rectangles: n + 2√n − 3 = ${n} + ${2*k} − 3 = ${n + 2*k - 3}.`;
-    }
-
     document.addEventListener('DOMContentLoaded', ()=>{
       drawResults();
-      renderImoPattern(9);
     });
   </script>
 
@@ -278,43 +222,13 @@
           </div>
         </div>
 
-        <!-- Inline method figure (no external assets) -->
+        <!-- Replaced inline SVG/table with single image asset -->
         <div class="card" style="margin-top:16px">
           <figure class="fig">
-            <div class="card" style="flex:1 1 280px">
+            <div class="card" style="flex:1 1 560px">
               <h3 style="margin-top:0">Flow diagram</h3>
-              <svg class="svgwrap" id="flow" viewBox="0 0 700 210" role="img" aria-label="EvoCut flow">
-                <defs>
-                  <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#7096ff"/><stop offset="100%" stop-color="#82ffd9"/>
-                  </linearGradient>
-                </defs>
-                <rect x="30" y="40" rx="14" width="180" height="110" fill="#151827" stroke="#23283d"/>
-                <text x="120" y="95" text-anchor="middle" fill="#f5f7fa" font-size="14">Initialize</text>
-
-                <polygon points="230,95 270,75 270,115" fill="#7096ff"/>
-                <rect x="290" y="40" rx="14" width="180" height="110" fill="#151827" stroke="#23283d"/>
-                <text x="380" y="80" text-anchor="middle" fill="#f5f7fa" font-size="14">Verify</text>
-                <text x="380" y="102" text-anchor="middle" fill="#b9c0cf" font-size="12">OSP + usefulness</text>
-
-                <polygon points="490,95 530,75 530,115" fill="#82ffd9"/>
-                <rect x="550" y="40" rx="14" width="120" height="110" fill="#151827" stroke="#23283d"/>
-                <text x="610" y="85" text-anchor="middle" fill="#f5f7fa" font-size="14">Evolve</text>
-                <text x="610" y="107" text-anchor="middle" fill="#b9c0cf" font-size="12">crossover/mutation</text>
-              </svg>
-              <p class="tiny muted" style="margin:10px 0 0">High-level schematic of EvoCut’s three phases.</p>
-            </div>
-
-            <div class="card" style="flex:1 1 280px">
-              <h3 style="margin-top:0">LLM configuration (paper)</h3>
-              <table class="tbl tiny">
-                <tr><th>Model</th><td><span class="mono">deepspeek-reasoning</span></td></tr>
-                <tr><th>Max output tokens</th><td>10,000</td></tr>
-                <tr><th>Total tokens (approx.)</th><td>~91M (cost ≈ $50, May 2025 pricing)</td></tr>
-              </table>
-              <p class="tiny muted" style="margin:8px 0 0">
-                Parameters as reported in Appendix G of the paper. <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">[PDF]</a>
-              </p>
+              <img src="assets/main_diagram.png" alt="EvoCut flow diagram" class="svgwrap" style="width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:12px" />
+              <p class="tiny muted" style="margin:10px 0 0">High-level schematic of EvoCut's phases.</p>
             </div>
           </figure>
         </div>
@@ -375,6 +289,7 @@
       </div>
     </section>
 
+    <!-- NEW: IMO 2025 Problem 6 appendix-style section -->
     <section id="imo6">
       <div class="wrap">
         <h2>Appendix — IMO 2025 Problem 6 (Rectangular tiling with one hole per row & column)</h2>
@@ -386,19 +301,24 @@
             For perfect squares <span class="mono">n = k²</span>, the minimum number of rectangles is
             <span class="mono">n + 2√n − 3</span>.
             Hence <strong>N=4 → 5 tiles</strong> and <strong>N=9 → 12 tiles</strong>.
-            (This viewer shows the matching construction.)
+            See Evan Chen’s solution notes (§2.3) for the general argument and construction details. 
+            <a href="https://web.evanchen.cc/exams/IMO-2025-notes.pdf" target="_blank" rel="noopener">[Solution notes]</a>
           </div>
 
-          <div class="sample-row" style="margin:12px 0">
-            <a class="pill" href="#" onclick="renderImoPattern(4);return false;">Show N=4</a>
-            <a class="pill" href="#" onclick="renderImoPattern(9);return false;">Show N=9</a>
-            <a class="pill" href="#" onclick="renderImoPattern(25);return false;">Show N=25</a>
-            <span class="tiny muted">Red = rectangle boundaries, black = holes.</span>
-          </div>
+          <!-- Removed interactive grid visualization for N=4 and N=9 -->
 
-          <svg id="imoSvg" class="svgwrap" role="img"
-               aria-label="n×n tiling (n=k²) with one hole per row and column"></svg>
-          <p id="imoAnswer" class="tiny muted" style="margin-top:8px"></p>
+          <p class="tiny muted" style="margin-top:12px">
+            Why this bound? Very briefly: label the <em>n</em> holes as a permutation of rows vs. columns, take a longest increasing subsequence (LIS) of length <em>a</em> and a longest decreasing subsequence (LDS) of length <em>b</em>;
+            Erdős-Szekeres implies <span class="mono">ab ≥ n</span>, giving a counting lower bound near <span class="mono">n + 2√n</span>.
+            For <span class="mono">n = k²</span> there is a matching construction with <span class="mono">(k−1)²</span> interior <span class="mono">k×k</span> tiles plus <span class="mono">4(k−1)</span> boundary tiles,
+            totaling <span class="mono">k² + 2k − 3</span>. See the notes for the exact details and figures. 
+            <a href="https://web.evanchen.cc/exams/IMO-2025-notes.pdf" target="_blank" rel="noopener">[Solution notes]</a>
+          </p>
+
+          <p class="tiny muted" style="margin-top:6px">
+            This benchmark appears in our paper’s appendix as “Rectangular Tiling with One Hole per Row and Column (IMO 2025 P6)” and is modeled with a compact 2D interval-flow MILP. 
+            See Appendix F.5 and H/G for definitions and experiment sizes. <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">[Paper PDF]</a>
+          </p>
         </div>
       </div>
     </section>
