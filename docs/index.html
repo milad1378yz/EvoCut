@@ -241,7 +241,7 @@
 
         <div class="grid" style="margin-bottom:12px">
           <div class="card">
-            <div class="kpi">17–57% gap reduction</div>
+            <div class="kpi">17-57% gap reduction</div>
             <div class="muted tiny">within a fixed budget across four MILP benchmarks</div>
           </div>
           <div class="card">
@@ -299,9 +299,9 @@
 
           <div class="note tiny">
             For perfect squares <span class="mono">n = k²</span>, the minimum number of rectangles is
-            <span class="mono">n + 2√n − 3</span>.
+            <span class="mono">n + 2√n - 3</span>.
             Hence <strong>N=4 → 5 tiles</strong> and <strong>N=9 → 12 tiles</strong>.
-            See Evan Chen’s solution notes (§2.3) for the general argument and construction details. 
+            See Evan Chen's solution notes (§2.3) for the general argument and construction details. 
             <a href="https://web.evanchen.cc/exams/IMO-2025-notes.pdf" target="_blank" rel="noopener">[Solution notes]</a>
           </div>
 
@@ -310,13 +310,13 @@
           <p class="tiny muted" style="margin-top:12px">
             Why this bound? Very briefly: label the <em>n</em> holes as a permutation of rows vs. columns, take a longest increasing subsequence (LIS) of length <em>a</em> and a longest decreasing subsequence (LDS) of length <em>b</em>;
             Erdős-Szekeres implies <span class="mono">ab ≥ n</span>, giving a counting lower bound near <span class="mono">n + 2√n</span>.
-            For <span class="mono">n = k²</span> there is a matching construction with <span class="mono">(k−1)²</span> interior <span class="mono">k×k</span> tiles plus <span class="mono">4(k−1)</span> boundary tiles,
-            totaling <span class="mono">k² + 2k − 3</span>. See the notes for the exact details and figures. 
+            For <span class="mono">n = k²</span> there is a matching construction with <span class="mono">(k-1)²</span> interior <span class="mono">k×k</span> tiles plus <span class="mono">4(k-1)</span> boundary tiles,
+            totaling <span class="mono">k² + 2k - 3</span>. See the notes for the exact details and figures. 
             <a href="https://web.evanchen.cc/exams/IMO-2025-notes.pdf" target="_blank" rel="noopener">[Solution notes]</a>
           </p>
 
           <p class="tiny muted" style="margin-top:6px">
-            This benchmark appears in our paper’s appendix as “Rectangular Tiling with One Hole per Row and Column (IMO 2025 P6)” and is modeled with a compact 2D interval-flow MILP. 
+            This benchmark appears in our paper's appendix as “Rectangular Tiling with One Hole per Row and Column (IMO 2025 P6)” and is modeled with a compact 2D interval-flow MILP. 
             See Appendix F.5 and H/G for definitions and experiment sizes. <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">[Paper PDF]</a>
           </p>
         </div>
