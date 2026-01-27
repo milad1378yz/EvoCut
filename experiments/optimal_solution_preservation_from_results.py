@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import argparse
 import json
 import os
@@ -634,7 +632,7 @@ def parse_args() -> argparse.Namespace:
         "--problem_name",
         type=str,
         default="auto",
-        help="Problem name (cwlp/mcnd/jssp/tsp) or 'auto'. If results_path is a directory, this is ignored.",
+        help="Problem name (cwlp/mcnd/jssp/tsp/pdptw/imo6) or 'auto'. If results_path is a directory, this is ignored.",
     )
     parser.add_argument(
         "--solver_name",
