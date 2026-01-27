@@ -13,6 +13,7 @@ from src.utils.general_utils import (
     load_config,
     load_pickle,
     save_pickle,
+    adopt_code_to_fucntion,
     remove_constraint,
 )
 
@@ -146,7 +147,7 @@ def main():
 
     for idx, indiv in enumerate(top_individuals, start=1):
         code_id = f"indiv_{idx}"
-        full_code = true_code_clean
+        full_code = adopt_code_to_fucntion(true_code, indiv.chromosome["added_cut"])
 
         logging.info(f"Verifying {code_id} ...")
         try:
