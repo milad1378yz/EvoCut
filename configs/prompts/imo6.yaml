@@ -1,0 +1,95 @@
+imo6: |
+  def create_model(N, additional_cut=False):
+      """Pyomo version of the 2D network flow rectangle-tiling model."""
+      model = pyo.ConcreteModel(name="RectTiling_2DFlow")
+
+      # --- index sets ---
+      model.rows = pyo.RangeSet(1, N)
+      model.cols = pyo.RangeSet(1, N)
+      intervals_list = [(a, b) for a in range(1, N + 1) for b in range(1, N + 1) if a <= b]
+      model.intervals = pyo.Set(dimen=2, initialize=intervals_list)
+
+      # --- variables ---
+      model.h = pyo.Var(model.rows, model.cols, domain=pyo.Binary)  # hole vars
+      model.x = pyo.Var(model.rows, model.intervals, domain=pyo.Binary)  # interval active
+      model.s = pyo.Var(model.rows, model.intervals, domain=pyo.Binary)  # start
+      model.t = pyo.Var(model.rows, model.intervals, domain=pyo.Binary)  # end
+
+      # --- 1) hole constraints: one per row, one per column ---
+      def hole_row_rule(m, i):
+          return sum(m.h[i, j] for j in m.cols) == 1
+
+      model.HoleRow = pyo.Constraint(model.rows, rule=hole_row_rule)
+
+      def hole_col_rule(m, j):
+          return sum(m.h[i, j] for i in m.rows) == 1
+
+      model.HoleCol = pyo.Constraint(model.cols, rule=hole_col_rule)
+
+      # --- 2) coverage: each cell covered exactly once (either by a span covering j or the hole) ---
+      def cover_rule(m, i, j):
+          cover_sum = sum(m.x[i, (a, b)] for (a, b) in m.intervals if a <= j <= b)
+          return cover_sum + m.h[i, j] == 1
+
+      model.Cover = pyo.Constraint(model.rows, model.cols, rule=cover_rule)
+
+      # --- 3) 1-D flow on each interval (a,b) down the rows ---
+      # Top row must “start” if active: x[1,a,b] - s[1,a,b] == 0
+      def flow_top_rule(m, a, b):
+          return m.x[1, (a, b)] - m.s[1, (a, b)] == 0
+
+      model.FlowTop = pyo.Constraint(model.intervals, rule=flow_top_rule)
+
+      # Middle rows: x_i = x_(i-1) + s_i - t_(i-1)
+      def flow_mid_rule(m, i, a, b):
+          if i == 1:
+              return pyo.Constraint.Skip
+          return m.x[i, (a, b)] - m.x[i - 1, (a, b)] - m.s[i, (a, b)] + m.t[i - 1, (a, b)] == 0
+
+      model.FlowMid = pyo.Constraint(model.rows, model.intervals, rule=flow_mid_rule)
+
+      # Last row must “end”: x[N,a,b] - t[N,a,b] == 0
+      def flow_bot_rule(m, a, b):
+          return m.x[N, (a, b)] - m.t[N, (a, b)] == 0
+
+      model.FlowBottom = pyo.Constraint(model.intervals, rule=flow_bot_rule)
+
+      # --- objective: minimize total number of starts ---
+      model.Obj = pyo.Objective(
+          expr=sum(model.s[i, (a, b)] for i in model.rows for (a, b) in model.intervals),
+          sense=pyo.minimize,
+      )
+
+      if additional_cut:
+
+          def disrupted_column_start(m, i, j, k):
+              # Enforces mandatory starts at column j due to hole activity at k.
+              # This generalizes the 'Vacated Column' logic to include 'Broken Interval' cases.
+              if i == 1:
+                  return pyo.Constraint.Skip
+
+              # LHS: Does a new interval start at row i covering column j?
+              starts_at_j = sum(m.s[i, iv] for iv in m.intervals if iv[0] <= j <= iv[1])
+
+              if j == k:
+                  # Case 1: Vacated Column (Original Idea)
+                  # If the hole leaves column j (h[i-1,j]=1 -> h[i,j]=0), j must be covered by a new start.
+                  return starts_at_j >= m.h[i - 1, j] - m.h[i, j]
+
+              # Case 2: Broken Connection (Mutation)
+              # If j and k were covered by the same interval in row i-1, and the hole appears at k in row i,
+              # that interval is terminated. Column j (which is not the hole) must therefore start a new interval.
+              common_intervals = [iv for iv in m.intervals if iv[0] <= min(j, k) and iv[1] >= max(j, k)]
+              if not common_intervals:
+                  return pyo.Constraint.Skip
+
+              connected_prev = sum(m.x[i - 1, iv] for iv in common_intervals)
+              return starts_at_j >= connected_prev + m.h[i, k] - 1
+
+          model.DisruptedColumnStart = pyo.Constraint(model.rows, model.cols, model.cols, rule=disrupted_column_start)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return model
+

@@ -1,0 +1,236 @@
+pdptw: |
+  def create_model(
+      K,
+      N,
+      d0i,  # (k,i) -> d^k_(0i)
+      dij,  # (i,j) -> d_(ij), with dij[i,i] = loaded time of job i
+      diH,  # (k,i) -> d^k_(iH)
+      v,  # k -> v_k
+      tau_earliest,  # i -> τ^-_i
+      tau_latest,  # i -> τ^+_i
+      M=None,
+      additional_cut=False,
+  ):
+      """
+      Create a Pyomo model for the truckload PDPTW (Srour et al., MIPLIB truck instances).
+      
+      Parameters:
+        K : int, number of vehicles.
+        N : int, number of jobs.
+        d0i : dict (k,i) -> empty travel time start(k) -> pickup(i).
+        dij : dict (i,j) -> travel time return(i) -> pickup(j); dij[i,i] = loaded time of job i.
+        diH : dict (k,i) -> empty travel time return(i) -> home(k).
+        v : dict k -> vehicle availability time.
+        tau_earliest : dict i -> earliest pickup time τ^-_i.
+        tau_latest : dict i -> latest pickup time τ^+_i.
+        M : optional big-M; if None, set to 2 * max(dij.values()).
+        additional_cut : if True, apply the PDPTW EvoCut family.
+      
+      Returns:
+        model : Pyomo ConcreteModel.
+      """
+      import networkx as nx
+
+      model = pyo.ConcreteModel()
+
+      # Sets
+      model.VEH = pyo.RangeSet(1, K)  # vehicles k = 1..K
+      model.JOB = pyo.RangeSet(1, N)  # jobs i = 1..N
+      # nodes u = 1..K+N; 1..K trucks, K+1..K+N jobs
+      model.NODE = pyo.RangeSet(1, K + N)
+
+      # Parameters
+      model.d0i = pyo.Param(model.VEH, model.JOB, initialize=lambda m, k, i: d0i[k, i])
+      model.dij = pyo.Param(model.JOB, model.JOB, initialize=lambda m, i, j: dij[i, j])
+      model.diH = pyo.Param(model.VEH, model.JOB, initialize=lambda m, k, i: diH[k, i])
+      model.v = pyo.Param(model.VEH, initialize=lambda m, k: v[k])
+      model.tau_earliest = pyo.Param(model.JOB, initialize=lambda m, i: tau_earliest[i])
+      model.tau_latest = pyo.Param(model.JOB, initialize=lambda m, i: tau_latest[i])
+
+      # Big-M
+      if M is None:
+          if not dij:
+              raise ValueError("dij must be non-empty to compute M.")
+          M_val = 2.0 * max(dij.values())
+      else:
+          M_val = float(M)
+      model.M = pyo.Param(initialize=M_val)
+
+      # Variables
+      model.x = pyo.Var(model.NODE, model.NODE, domain=pyo.Binary)  # x_uv
+      model.delta = pyo.Var(model.JOB, domain=pyo.NonNegativeReals)  # δ_i
+
+      # Objective (empty travel + rejection penalty)
+      def obj_rule(m):
+          # from truck k start to first job i
+          term1 = sum(m.d0i[k, i] * m.x[k, K + i] for k in m.VEH for i in m.JOB)
+          # between jobs (i=j term is rejection penalty)
+          term2 = sum(m.dij[i, j] * m.x[K + i, K + j] for i in m.JOB for j in m.JOB)
+          # from last job i back to home of truck k
+          term3 = sum(m.diH[k, i] * m.x[K + i, k] for k in m.VEH for i in m.JOB)
+          return term1 + term2 + term3
+
+      model.obj = pyo.Objective(rule=obj_rule, sense=pyo.minimize)
+
+      # (1) One outgoing arc from each node
+      model.outgoing = pyo.Constraint(
+          model.NODE, rule=lambda m, u: sum(m.x[u, v] for v in m.NODE) == 1
+      )
+
+      # (2) One incoming arc to each node
+      model.incoming = pyo.Constraint(
+          model.NODE, rule=lambda m, u: sum(m.x[v, u] for v in m.NODE) == 1
+      )
+
+      # (3) First job timing relative to vehicle availability
+      def first_job_time_rule(m, i):
+          return m.delta[i] - sum(
+              (m.d0i[k, i] + m.v[k]) * m.x[k, K + i] for k in m.VEH
+          ) >= 0
+
+      model.first_job_time = pyo.Constraint(model.JOB, rule=first_job_time_rule)
+
+      # (4) Time consistency / rejection logic
+      # δ_j - δ_i - M x_(K+i,K+j) + (d_ii + d_ij) x_(K+i,K+i) ≥ d_ii + d_ij - M
+      def sequencing_rule(m, i, j):
+          return (
+              m.delta[j]
+              - m.delta[i]
+              - m.M * m.x[K + i, K + j]
+              + (m.dij[i, i] + m.dij[i, j]) * m.x[K + i, K + i]
+              >= m.dij[i, i] + m.dij[i, j] - m.M
+          )
+
+      model.sequencing = pyo.Constraint(model.JOB, model.JOB, rule=sequencing_rule)
+
+      # (5) Time windows τ^-_i ≤ δ_i ≤ τ^+_i
+      model.time_window = pyo.Constraint(
+          model.JOB,
+          rule=lambda m, i: (m.tau_earliest[i], m.delta[i], m.tau_latest[i]),
+      )
+
+      if additional_cut:
+
+          def add_integrated_temporal_cuts(mdl):
+              # 1) Parameter extraction & tightened EST calculation
+              K_val = len(mdl.VEH)
+              JOB = list(mdl.JOB)
+              v_vals = {k: pyo.value(mdl.v[k]) for k in mdl.VEH}
+              d0i_vals = {(k, i): pyo.value(mdl.d0i[k, i]) for k in mdl.VEH for i in JOB}
+              dij_vals = {(i, j): pyo.value(mdl.dij[i, j]) for i in JOB for j in JOB}
+              tau_e = {i: pyo.value(mdl.tau_earliest[i]) for i in JOB}
+              tau_l = {i: pyo.value(mdl.tau_latest[i]) for i in JOB}
+
+              EST = {}
+              for i in JOB:
+                  min_arrival = min(v_vals[k] + d0i_vals[k, i] for k in mdl.VEH)
+                  EST[i] = max(tau_e[i], min_arrival)
+
+              infeasible_arcs = []
+              cycle_pairs = []
+              conflict_graph = nx.Graph()
+              conflict_graph.add_nodes_from(JOB)
+
+              feasible_out = {i: [] for i in JOB}
+              feasible_in = {i: [] for i in JOB}
+
+              # 2) Pair classification (feasible, infeasible, conflict, cycle)
+              for i in JOB:
+                  for j in JOB:
+                      if i == j:
+                          continue
+
+                      arr_j = EST[i] + dij_vals[i, i] + dij_vals[i, j]
+                      feas_ij = arr_j <= tau_l[j]
+
+                      arr_i = EST[j] + dij_vals[j, j] + dij_vals[j, i]
+                      feas_ji = arr_i <= tau_l[i]
+
+                      if not feas_ij:
+                          infeasible_arcs.append((i, j))
+                      else:
+                          feasible_out[i].append(j)
+                          feasible_in[j].append(i)
+
+                      if not feas_ij and not feas_ji and i < j:
+                          conflict_graph.add_edge(i, j)
+
+                      if feas_ij and feas_ji and i < j:
+                          cycle_pairs.append((i, j))
+
+              # 3) Infeasible arc fixing
+              if infeasible_arcs:
+                  mdl.cut_fix_arcs = pyo.Constraint(
+                      pyo.RangeSet(0, len(infeasible_arcs) - 1),
+                      rule=lambda m, idx: m.x[
+                          K_val + infeasible_arcs[idx][0],
+                          K_val + infeasible_arcs[idx][1],
+                      ]
+                      == 0,
+                  )
+
+              # 4) Lifted 2-cycle cuts
+              if cycle_pairs:
+
+                  def cycle_rule(m, idx):
+                      i, j = cycle_pairs[idx]
+                      ui, uj = K_val + i, K_val + j
+                      return m.x[ui, uj] + m.x[uj, ui] + m.x[ui, ui] <= 1
+
+                  mdl.cut_lifted_cycles = pyo.Constraint(
+                      pyo.RangeSet(0, len(cycle_pairs) - 1),
+                      rule=cycle_rule,
+                  )
+
+              # 5) Conflict clique cuts
+              cliques = [c for c in nx.find_cliques(conflict_graph) if len(c) > K_val]
+              if cliques:
+
+                  def clique_rule(m, idx):
+                      c = cliques[idx]
+                      return sum(m.x[K_val + i, K_val + i] for i in c) >= len(c) - K_val
+
+                  mdl.cut_cliques = pyo.Constraint(
+                      pyo.RangeSet(0, len(cliques) - 1),
+                      rule=clique_rule,
+                  )
+
+              # 6) Lifted 3-path precedence cuts
+              path_cuts = []
+              for k in JOB:
+                  for i in feasible_in[k]:
+                      for j in feasible_out[k]:
+                          if i == j:
+                              continue
+
+                          start_k_via_i = max(
+                              EST[k],
+                              EST[i] + dij_vals[i, i] + dij_vals[i, k],
+                          )
+                          arr_j = start_k_via_i + dij_vals[k, k] + dij_vals[k, j]
+                          if arr_j > tau_l[j]:
+                              path_cuts.append((i, k, j))
+
+              if path_cuts:
+
+                  def path_rule(m, idx):
+                      i, k, j = path_cuts[idx]
+                      return (
+                          m.x[K_val + i, K_val + k]
+                          + m.x[K_val + k, K_val + j]
+                          + m.x[K_val + k, K_val + k]
+                          <= 1
+                      )
+
+                  mdl.cut_paths = pyo.Constraint(
+                      pyo.RangeSet(0, len(path_cuts) - 1),
+                      rule=path_rule,
+                  )
+
+          add_integrated_temporal_cuts(model)
+
+      # Additional constraints placeholder.
+  {added_constraint}
+
+      return model
+

@@ -85,7 +85,7 @@ python src/main.py -h
 To check the **optimal solution preservation rate** of generated cuts:
 
 ```bash
-python experiments/OSP_cuts.py <args>
+python experiments/optimal_solution_preservation_cuts.py <args>
 ```
 
 ---
@@ -105,6 +105,5 @@ python experiments/evaluate_cut.py <args>
 * Determinism: seeds are configurable in configs or CLI flags.
 * Hardware/solver versions may affect runtime but not correctness.
 * Minimal dependencies ensure reproducibility across machines.
-
 
 

@@ -13,82 +13,356 @@
   <meta property="og:image" content="assets/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     :root{
-      --bg:#0a0b0e; --bg-soft:#11131a; --fg:#f5f7fa; --muted:#b9c0cf; --brand:#7aa2ff; --brand-2:#91f2d6;
-      --card:#151827; --border:#23283d; --code:#0f1220; --link:#a7c2ff; --accent:#f0f3ff; --shadow:0 10px 30px rgba(0,0,0,.35)
+      --bg:#0b0f14;
+      --bg-2:#121826;
+      --bg-3:#0f1521;
+      --fg:#f5f7fb;
+      --muted:#98a6bc;
+      --brand:#45d0c5;
+      --brand-2:#ffb463;
+      --accent:#ff6b6b;
+      --line:rgba(255,255,255,0.08);
+      --card:rgba(18,24,38,0.78);
+      --shadow:0 30px 80px rgba(6,10,16,.62);
+      --radius:18px;
+      --ease:cubic-bezier(.2,.8,.2,1);
+      --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans:"Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --display:"Space Grotesk", "Sora", sans-serif;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
-    a{color:var(--link);text-decoration:none}
-    a:hover{text-decoration:underline}
-    .wrap{max-width:1080px;margin:0 auto;padding:28px}
-    header{position:sticky;top:0;background:linear-gradient(to bottom, rgba(10,11,14,.9), rgba(10,11,14,.55));backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--border);z-index:20}
-    nav{display:flex;align-items:center;gap:18px;justify-content:space-between}
-    nav .right a{margin-left:16px;font-weight:600}
-    .hero{padding:64px 0 42px;background:
-      radial-gradient(1200px 500px at 20% -20%, rgba(122,162,255,.25), transparent 60%),
-      radial-gradient(900px 400px at 85% -10%, rgba(145,242,214,.18), transparent 60%);
-      border-bottom:1px solid var(--border);
+    html,body{margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font:16px/1.7 var(--sans);
+      color:var(--fg);
+      background:var(--bg);
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
     }
-    h1{font-size:clamp(28px,4vw,44px);line-height:1.15;margin:0 0 10px}
-    .subtitle{color:var(--muted);margin:6px 0 18px}
-    .authors{color:var(--accent);opacity:.9}
-    .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
-    .btn{display:inline-block;padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-soft);color:var(--fg);box-shadow:var(--shadow);font-weight:600}
-    .btn:hover{transform:translateY(-1px)}
-    .btn.brand{background:linear-gradient(135deg, #7096ff, #82ffd9);color:#0a0b0e;border:none}
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-20% -10% -10% -10%;
+      background:
+        radial-gradient(700px 420px at 12% 8%, rgba(69,208,197,.25), transparent 60%),
+        radial-gradient(600px 340px at 90% 0%, rgba(255,180,99,.22), transparent 60%),
+        radial-gradient(900px 520px at 70% 35%, rgba(255,107,107,.12), transparent 65%);
+      z-index:-2;
+    }
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        linear-gradient(180deg, rgba(11,15,20,.6), rgba(11,15,20,.95)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0, rgba(255,255,255,.04) 1px, transparent 1px, transparent 120px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 120px);
+      z-index:-1;
+      pointer-events:none;
+      opacity:.7;
+    }
+    img{max-width:100%;display:block}
+    a{color:inherit;text-decoration:none}
+    a:hover{color:var(--brand)}
+    .wrap{max-width:1160px;margin:0 auto;padding:0 26px}
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(16px) saturate(1.2);
+      background:linear-gradient(180deg, rgba(11,15,20,.85), rgba(11,15,20,.3));
+      border-bottom:1px solid var(--line);
+    }
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      padding:18px 0;
+    }
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo-mark{
+      width:36px;
+      height:36px;
+      border-radius:12px;
+      background:conic-gradient(from 230deg, var(--brand), var(--brand-2), var(--accent));
+      box-shadow:0 12px 30px rgba(69,208,197,.35);
+    }
+    .logo-text{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.5px}
+    .logo-sub{color:var(--muted);font-size:12px}
+    .nav-links{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:14px}
+    .nav-links a{color:var(--muted);font-weight:500}
+    .nav-links a:hover{color:var(--fg)}
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 16px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(17,23,34,.75);
+      color:var(--fg);
+      font-weight:600;
+      transition:transform .25s var(--ease), box-shadow .25s var(--ease), border .25s var(--ease);
+      box-shadow:0 12px 30px rgba(7,10,15,.35);
+    }
+    .btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.25)}
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(69,208,197,.95), rgba(255,180,99,.9));
+      color:#081116;
+      border:none;
+    }
     .btn.ghost{background:transparent}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-    section{padding:40px 0;border-bottom:1px solid var(--border)}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
-    h2{font-size:clamp(20px,3vw,28px);margin:0 0 12px}
-    .muted{color:var(--muted)}
-    .kpi{font-weight:700;font-size:18px}
-    pre{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:auto}
-    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    footer{padding:42px 0;color:var(--muted)}
-    .tiny{font-size:12px}
-    .toc a{margin-right:12px}
-    .copy{cursor:pointer;border:1px solid var(--border);background:var(--bg-soft);padding:6px 10px;border-radius:8px;margin-left:8px}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:2px 8px;font-size:12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-soft);color:var(--accent)}
-    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--bg-soft);font-size:12px}
-    figure{margin:0}
-    .fig{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
-    .fig > .card{flex:1 1 340px}
-    .tbl{width:100%;border-collapse:collapse}
-    .tbl th,.tbl td{border-bottom:1px solid var(--border);padding:10px;text-align:left}
-    .tbl th{color:var(--accent);font-weight:600}
-    .svgwrap{display:block;max-width:100%;border-radius:12px;border:1px solid var(--border);background:var(--bg-soft);padding:12px}
-    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
-    .note{border-left:3px solid var(--brand);padding:12px 14px;border-radius:8px;background:rgba(122,162,255,.06)}
-    /* tiny interactive grid for IMO6 */
-    .imo-grid{--n:9; --gap:2px; display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:var(--gap); background:var(--border); padding:var(--gap); border-radius:12px}
-    .imo-layer{position:relative}
-    .imo-canvas{position:absolute; inset:0; pointer-events:none}
-    .imo-rect{
-      position:absolute; border:2px solid #91f2d6; background:rgba(145,242,214,.10);
-      border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.25)
+    .btn.small{padding:8px 14px;font-size:13px}
+
+    main{position:relative;z-index:1}
+    section{padding:80px 0;border-bottom:1px solid var(--line)}
+
+    .hero{padding:92px 0 70px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+    .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:6px 12px;
+      border-radius:999px;
+      background:rgba(69,208,197,.12);
+      color:var(--brand);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.2em;
+      font-weight:600;
     }
-    .imo-hole-dot{position:absolute; width:10px; height:10px; border-radius:50%;
-      background:linear-gradient(135deg,#ffb3c1,#ffd6a5); border:2px solid #f7bfbf; transform:translate(-50%,-50%)}
-    .imo-controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0}
-    .imo-controls textarea{width:100%; max-width:680px; height:140px; background:var(--code); color:var(--fg);
-      border:1px solid var(--border); border-radius:10px; padding:10px; font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas}
-    .imo-controls .btn-mini{padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-soft)}
-    .imo-cell{aspect-ratio:1/1; background:var(--card); border:1px solid var(--border)}
-    .imo-hole{background:linear-gradient(135deg,#ffb3c1,#ffd6a5);border-color:#f7bfbf}
-    .legend{display:flex;gap:12px;align-items:center}
-    .sample-row{display:flex;gap:10px;flex-wrap:wrap}
+    h1{
+      font-family:var(--display);
+      font-size:clamp(36px,4vw,54px);
+      line-height:1.1;
+      margin:16px 0 14px;
+    }
+    h2{
+      font-family:var(--display);
+      font-size:clamp(26px,3vw,34px);
+      margin:0 0 16px;
+    }
+    h3{font-family:var(--display);margin:0 0 8px}
+    p{margin:0 0 16px}
+    .subtitle{color:var(--muted);font-size:17px}
+    .authors{color:#e3e9f5;font-weight:600;letter-spacing:.02em;margin-bottom:10px}
+    .cta{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
+    .meta{color:var(--muted);font-size:13px}
+
+    .hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:26px}
+    .stat{
+      padding:14px 16px;
+      border-radius:14px;
+      background:rgba(17,23,34,.55);
+      border:1px solid var(--line);
+      backdrop-filter:blur(6px);
+    }
+    .stat strong{display:block;font-size:18px}
+    .stat span{color:var(--muted);font-size:12px}
+
+    .hero-art{position:relative;display:grid;gap:16px}
+    .orb{
+      position:absolute;
+      border-radius:50%;
+      filter:blur(0px);
+      opacity:.55;
+      animation:float 10s ease-in-out infinite;
+      z-index:0;
+    }
+    .orb.a{width:180px;height:180px;background:radial-gradient(circle, rgba(69,208,197,.55), transparent 70%);top:-30px;right:20px}
+    .orb.b{width:220px;height:220px;background:radial-gradient(circle, rgba(255,180,99,.5), transparent 70%);bottom:0;left:-40px;animation-delay:-2s}
+    .orb.c{width:140px;height:140px;background:radial-gradient(circle, rgba(255,107,107,.4), transparent 70%);bottom:140px;right:-30px;animation-delay:-4s}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:22px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    .card.glow{
+      background:linear-gradient(135deg, rgba(17,23,34,.92), rgba(18,24,38,.75));
+      border:1px solid rgba(255,255,255,.12);
+      position:relative;
+      overflow:hidden;
+    }
+    .card.glow::after{
+      content:"";
+      position:absolute;
+      inset:-40% 40% auto auto;
+      width:160px;
+      height:160px;
+      background:radial-gradient(circle, rgba(69,208,197,.35), transparent 70%);
+      opacity:.7;
+    }
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+    .tag{
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+    .checklist li{
+      position:relative;
+      padding-left:26px;
+      color:var(--muted);
+    }
+    .checklist li::before{
+      content:"";
+      position:absolute;
+      left:0;top:6px;
+      width:14px;height:14px;border-radius:4px;
+      background:linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow:0 6px 18px rgba(69,208,197,.4);
+    }
+    .diagram{
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:var(--bg-3);
+      padding:12px;
+    }
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+    .section-intro{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .mono{font-family:var(--mono)}
+
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .step{
+      padding:18px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(17,23,34,.6);
+      position:relative;
+      overflow:hidden;
+    }
+    .step span{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:36px;height:36px;
+      border-radius:12px;
+      background:rgba(69,208,197,.16);
+      color:var(--brand);
+      font-weight:700;
+      margin-bottom:10px;
+    }
+
+    .kpi{font-size:20px;font-weight:700}
+    .tiny{font-size:12px;color:var(--muted)}
+
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    .table th,.table td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+    .table th{color:var(--fg);font-weight:600}
+
+    pre{
+      background:var(--bg-3);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      overflow:auto;
+      font-family:var(--mono);
+      font-size:12px;
+    }
+
+    .note{
+      border-left:3px solid var(--brand);
+      padding:14px 16px;
+      border-radius:12px;
+      background:rgba(69,208,197,.08);
+    }
+
+    .copy-btn{
+      border:1px solid var(--line);
+      background:rgba(17,23,34,.8);
+      color:var(--fg);
+      padding:8px 14px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    .bars-ready .bar{transform:scaleY(1)}
+    .bar{
+      transform-origin:50% 100%;
+      transform:scaleY(0);
+      transition:transform 900ms var(--ease);
+    }
+
+    [data-reveal]{
+      opacity:0;
+      transform:translateY(18px);
+      transition:opacity .8s var(--ease), transform .8s var(--ease);
+      transition-delay:var(--delay, 0s);
+    }
+    [data-reveal].in-view{opacity:1;transform:translateY(0)}
+
+    footer{padding:50px 0;color:var(--muted)}
+
+    @keyframes float{
+      0%,100%{transform:translateY(0px)}
+      50%{transform:translateY(-16px)}
+    }
+
+    @media (max-width: 980px){
+      .hero-grid{grid-template-columns:1fr}
+      .nav{flex-direction:column;align-items:flex-start}
+      .section-intro{flex-direction:column;align-items:flex-start}
+    }
+    @media (max-width: 720px){
+      section{padding:64px 0}
+      .hero{padding:72px 0 60px}
+      .nav-links{gap:10px}
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+      [data-reveal]{opacity:1;transform:none}
+    }
   </style>
 
   <script>
     function copyBibtex(){
       const el=document.getElementById('bibtex');
       navigator.clipboard.writeText(el.innerText.trim())
-        .then(()=>{const b=document.getElementById('copybtn'); b.textContent='Copied ✓'; setTimeout(()=>b.textContent='Copy',1600);});
+        .then(()=>{
+          const b=document.getElementById('copybtn');
+          b.textContent='Copied ✓';
+          setTimeout(()=>b.textContent='Copy BibTeX',1600);
+        });
     }
-    // Draw simple bar chart for results
     function drawResults(){
       const data=[
         {name:'TSP', val:57},
@@ -97,14 +371,27 @@
         {name:'MCND', val:17}
       ];
       const svg=document.getElementById('resvg');
+      if(!svg){return}
       const w=svg.clientWidth||720, h=260, pad=36;
       svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-      // bg grid
+      while(svg.firstChild){svg.removeChild(svg.firstChild)}
+      const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const grad=document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+      grad.setAttribute('id','grad');
+      grad.setAttribute('x1','0'); grad.setAttribute('y1','0'); grad.setAttribute('x2','1'); grad.setAttribute('y2','1');
+      const s1=document.createElementNS('http://www.w3.org/2000/svg','stop');
+      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','#45d0c5');
+      const s2=document.createElementNS('http://www.w3.org/2000/svg','stop');
+      s2.setAttribute('offset','100%'); s2.setAttribute('stop-color','#ffb463');
+      grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs);
       for(let y=0;y<=60;y+=10){
         const gy=document.createElementNS('http://www.w3.org/2000/svg','line');
         gy.setAttribute('x1',pad); gy.setAttribute('x2',w-pad);
-        gy.setAttribute('y1',h-pad-(y*(h-2*pad)/60)); gy.setAttribute('y2',h-pad-(y*(h-2*pad)/60));
-        gy.setAttribute('stroke','#23283d'); gy.setAttribute('stroke-width','1'); svg.appendChild(gy);
+        gy.setAttribute('y1',h-pad-(y*(h-2*pad)/60));
+        gy.setAttribute('y2',h-pad-(y*(h-2*pad)/60));
+        gy.setAttribute('stroke','rgba(255,255,255,.08)');
+        gy.setAttribute('stroke-width','1');
+        svg.appendChild(gy);
       }
       const bw=(w-2*pad)/data.length*0.6, gap=(w-2*pad)/data.length*0.4;
       data.forEach((d,i)=>{
@@ -112,19 +399,42 @@
         const bh=(d.val/60)*(h-2*pad);
         const y=h-pad-bh;
         const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-        rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',bw); rect.setAttribute('height',bh);
+        rect.setAttribute('x',x); rect.setAttribute('y',y);
+        rect.setAttribute('width',bw); rect.setAttribute('height',bh);
         rect.setAttribute('rx',8); rect.setAttribute('fill','url(#grad)');
+        rect.setAttribute('class','bar');
         svg.appendChild(rect);
         const t=document.createElementNS('http://www.w3.org/2000/svg','text');
         t.setAttribute('x',x+bw/2); t.setAttribute('y',h-pad+16);
-        t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','12'); t.setAttribute('fill','#b9c0cf'); t.textContent=d.name; svg.appendChild(t);
+        t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','12');
+        t.setAttribute('fill','#98a6bc'); t.textContent=d.name; svg.appendChild(t);
         const v=document.createElementNS('http://www.w3.org/2000/svg','text');
         v.setAttribute('x',x+bw/2); v.setAttribute('y',y-6);
-        v.setAttribute('text-anchor','middle'); v.setAttribute('font-size','12'); v.setAttribute('fill','#f5f7fa'); v.textContent=d.val+'%'; svg.appendChild(v);
+        v.setAttribute('text-anchor','middle'); v.setAttribute('font-size','12');
+        v.setAttribute('fill','#f5f7fb'); v.textContent=d.val+'%'; svg.appendChild(v);
       });
+      setTimeout(()=>svg.classList.add('bars-ready'), 60);
+    }
+    function initReveal(){
+      const items=[...document.querySelectorAll('[data-reveal]')];
+      if(!('IntersectionObserver' in window)){
+        items.forEach((el)=>el.classList.add('in-view'));
+        return;
+      }
+      const observer=new IntersectionObserver((entries)=>{
+        entries.forEach((entry)=>{
+          if(entry.isIntersecting){
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {threshold:0.2, rootMargin:'0px 0px -10% 0px'});
+      items.forEach((el)=>observer.observe(el));
     }
     document.addEventListener('DOMContentLoaded', ()=>{
+      document.body.classList.add('is-loaded');
       drawResults();
+      initReveal();
     });
   </script>
 
@@ -151,172 +461,194 @@
 </head>
 <body>
   <header>
-    <div class="wrap">
-      <nav>
-        <div class="left">
-          <span class="badge">EvoCut</span>
-          <a class="pill" href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener" title="Hugging Face Papers entry">🤗 Papers</a>
+    <div class="wrap nav">
+      <div class="logo">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <div>
+          <div class="logo-text">EvoCut</div>
+          <div class="logo-sub">Evolution-Guided LLM Acceleration Cuts</div>
         </div>
-        <div class="right toc tiny">
-          <a href="#abstract">Abstract</a>
-          <a href="#method">Method</a>
-          <a href="#results">Results</a>
-          <a href="#imo6">IMO 2025 P6</a>
-          <a href="#get-started">Get started</a>
-          <a href="#citation">Citation</a>
-        </div>
+      </div>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#imo6">IMO 2025 P6</a>
+        <a href="#get-started">Get started</a>
+        <a href="#citation">Citation</a>
+        <a class="btn small" href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <div class="hero">
-      <div class="wrap">
-        <h1>EvoCut: Strengthening Integer Programs via Evolution-Guided Language Models</h1>
-        <div class="authors">Milad Yazdani · Mahdi Mostajabdaveh · Samin Aref · Zirui Zhou</div>
-        <div class="subtitle">
-          Automating the design of acceleration cuts by combining large language models with evolutionary search.
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div data-reveal style="--delay:.05s">
+          <div class="eyebrow">Acceleration Cuts • MILP • LLM + Evolution</div>
+          <h1>EvoCut: Strengthening Integer Programs via Evolution-Guided Language Models</h1>
+          <div class="authors">Milad Yazdani · Mahdi Mostajabdaveh · Samin Aref · Zirui Zhou</div>
+          <p class="subtitle">Automating the design of acceleration cuts by combining large language models with evolutionary search.</p>
+          <div class="cta">
+            <a class="btn primary" href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">Read the Paper (PDF)</a>
+            <a class="btn" href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">Hugging Face Papers</a>
+            <a class="btn" href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">Code on GitHub</a>
+            <a class="btn ghost" href="#get-started">Quickstart</a>
+          </div>
+          <div class="meta">DOI: <a href="https://doi.org/10.48550/arXiv.2508.11850" target="_blank" rel="noopener">10.48550/arXiv.2508.11850</a></div>
+          <div class="hero-stats">
+            <div class="stat"><strong>17-57% gap reduction</strong><span>across four MILP benchmarks</span></div>
+            <div class="stat"><strong>Up to 4x faster</strong><span>time-to-target gap speedup</span></div>
+            <div class="stat"><strong>Generalizes</strong><span>no expert-tuned parameters</span></div>
+          </div>
         </div>
-        <div class="cta">
-          <a class="btn brand" href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">Read the Paper (PDF)</a>
-          <a class="btn" href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv Page</a>
-          <a class="btn" href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">Hugging Face Papers</a>
-          <a class="btn" href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">Code on GitHub</a>
-          <a class="btn ghost" href="#get-started">Quickstart</a>
-        </div>
-        <div class="tiny muted" style="margin-top:10px">
-          DOI: <a href="https://doi.org/10.48550/arXiv.2508.11850" target="_blank" rel="noopener">10.48550/arXiv.2508.11850</a>
+        <div class="hero-art" data-reveal style="--delay:.12s">
+          <span class="orb a" aria-hidden="true"></span>
+          <span class="orb b" aria-hidden="true"></span>
+          <span class="orb c" aria-hidden="true"></span>
+          <div class="card glow">
+            <h3>Project Snapshot</h3>
+            <ul class="checklist">
+              <li>LLM proposes diverse candidate acceleration cuts.</li>
+              <li>Verification filters for optimal-solution preservation and pruning power.</li>
+              <li>Evolutionary search refines candidates across iterations.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag">TSP</span>
+              <span class="tag">CWLP</span>
+              <span class="tag">JSSP</span>
+              <span class="tag">MCND</span>
+              <span class="tag">IMO 2025 P6</span>
+            </div>
+          </div>
+          <div class="card diagram">
+            <img src="assets/main_diagram.png" alt="EvoCut flow diagram" />
+            <div class="tiny" style="margin-top:8px">Flow overview from the paper.</div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <section id="abstract">
       <div class="wrap">
-        <h2>Abstract</h2>
-        <div class="card">
+        <div class="section-intro" data-reveal>
+          <h2>Abstract</h2>
+          <span class="pill">Research summary</span>
+        </div>
+        <div class="card" data-reveal style="--delay:.1s">
           <p>
             EvoCut automates the generation of <em>acceleration cuts</em> for mixed-integer optimization by coupling an LLM with an evolutionary search:
             (i) initialize a diverse population of candidate cuts; (ii) test each cut for feasibility/optimal-solution preservation and pruning power; and
             (iii) evolve the population via crossover and mutation.
           </p>
-          <p class="tiny muted">See the paper for full details and results. Reported figures below mirror the arXiv manuscript. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a></p>
+          <p class="tiny">See the paper for full details and results. Reported figures below mirror the arXiv manuscript. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a></p>
         </div>
       </div>
     </section>
 
     <section id="method">
       <div class="wrap">
-        <h2>Method Overview</h2>
-        <div class="grid">
-          <div class="card">
-            <h3>1) Initialize</h3>
+        <div class="section-intro" data-reveal>
+          <h2>Method Overview</h2>
+          <p class="tiny">Three-phase search loop, guided by verification signals.</p>
+        </div>
+        <div class="steps" data-reveal style="--delay:.1s">
+          <div class="step">
+            <span>01</span>
+            <h3>Initialize</h3>
             <p>An LLM-based initializer proposes a diverse set of candidate cuts tailored to an instance class.</p>
           </div>
-          <div class="card">
-            <h3>2) Verify</h3>
+          <div class="step">
+            <span>02</span>
+            <h3>Verify</h3>
             <p>Each cut is empirically checked for <em>optimal-solution preservation</em> and its ability to eliminate fractional solutions on a verification set.</p>
           </div>
-          <div class="card">
-            <h3>3) Evolve</h3>
-            <p>Evolutionary operators (crossover &amp; mutation) refine candidates across iterations, guided by utility signals like optimality-gap reduction.</p>
+          <div class="step">
+            <span>03</span>
+            <h3>Evolve</h3>
+            <p>Evolutionary operators (crossover and mutation) refine candidates across iterations, guided by utility signals like optimality-gap reduction.</p>
           </div>
-        </div>
-
-        <!-- Replaced inline SVG/table with single image asset -->
-        <div class="card" style="margin-top:16px">
-          <figure class="fig">
-            <div class="card" style="flex:1 1 560px">
-              <h3 style="margin-top:0">Flow diagram</h3>
-              <img src="assets/main_diagram.png" alt="EvoCut flow diagram" class="svgwrap" style="width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:12px" />
-              <p class="tiny muted" style="margin:10px 0 0">High-level schematic of EvoCut's phases.</p>
-            </div>
-          </figure>
         </div>
       </div>
     </section>
 
     <section id="results">
       <div class="wrap">
-        <h2>Results</h2>
+        <div class="section-intro" data-reveal>
+          <h2>Results</h2>
+          <span class="pill">Empirical highlights</span>
+        </div>
 
-        <div class="grid" style="margin-bottom:12px">
+        <div class="grid" data-reveal style="--delay:.1s">
           <div class="card">
             <div class="kpi">17-57% gap reduction</div>
-            <div class="muted tiny">within a fixed budget across four MILP benchmarks</div>
+            <div class="tiny">within a fixed budget across four MILP benchmarks</div>
           </div>
           <div class="card">
-            <div class="kpi">Up to 4× faster</div>
-            <div class="muted tiny">to reach the same target gap</div>
+            <div class="kpi">Up to 4x faster</div>
+            <div class="tiny">to reach the same target gap</div>
           </div>
           <div class="card">
             <div class="kpi">Generalizes</div>
-            <div class="muted tiny">no expert-tuned parameters needed</div>
+            <div class="tiny">no expert-tuned parameters needed</div>
           </div>
         </div>
 
-        <div class="card">
-          <figure class="fig">
-            <div class="card" style="flex:1 1 320px">
-              <h3 style="margin-top:0">Gap reduction by benchmark</h3>
-              <svg id="resvg" class="svgwrap" width="100%" height="260" role="img" aria-label="Gap reduction bar chart">
-                <defs>
-                  <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#7096ff"/><stop offset="100%" stop-color="#82ffd9"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <p class="tiny muted" style="margin-top:8px">
-                Values reported in the abstract and results section of the paper. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a>
-              </p>
-            </div>
-            <div class="card" style="flex:1 1 320px">
-              <h3 style="margin-top:0">At a glance</h3>
-              <table class="tbl tiny">
-                <tr><th>Benchmark</th><th>Max gap ↓</th></tr>
-                <tr><td>TSP</td><td>57%</td></tr>
-                <tr><td>CWLP</td><td>46%</td></tr>
-                <tr><td>JSSP</td><td>37%</td></tr>
-                <tr><td>MCND</td><td>17%</td></tr>
-              </table>
-              <p class="tiny muted">Time-to-target speedup up to 4×, per abstract. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a></p>
-            </div>
-          </figure>
+        <div class="grid" style="margin-top:18px" data-reveal>
+          <div class="card">
+            <h3>Gap reduction by benchmark</h3>
+            <svg id="resvg" class="diagram" width="100%" height="260" role="img" aria-label="Gap reduction bar chart"></svg>
+            <p class="tiny" style="margin-top:10px">
+              Values reported in the abstract and results section of the paper. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a>
+            </p>
+          </div>
+          <div class="card">
+            <h3>At a glance</h3>
+            <table class="table">
+              <tr><th>Benchmark</th><th>Max gap down</th></tr>
+              <tr><td>TSP</td><td>57%</td></tr>
+              <tr><td>CWLP</td><td>46%</td></tr>
+              <tr><td>JSSP</td><td>37%</td></tr>
+              <tr><td>MCND</td><td>17%</td></tr>
+            </table>
+            <p class="tiny">Time-to-target speedup up to 4x, per abstract. <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">[arXiv]</a></p>
+          </div>
         </div>
 
-        <p class="tiny muted" style="margin-top:8px">
-          Sources: abstract & appendix of the arXiv manuscript. See <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv</a> / <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">PDF</a>.
+        <p class="tiny" style="margin-top:12px" data-reveal>
+          Sources: abstract and appendix of the arXiv manuscript. See <a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv</a> / <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">PDF</a>.
         </p>
       </div>
     </section>
 
-    <!-- NEW: IMO 2025 Problem 6 appendix-style section -->
     <section id="imo6">
       <div class="wrap">
-        <h2>Appendix — IMO 2025 Problem 6 (Rectangular tiling with one hole per row & column)</h2>
-        <div class="card">
+        <div class="section-intro" data-reveal>
+          <h2>Appendix — IMO 2025 Problem 6</h2>
+          <span class="pill">Rectangular tiling benchmark</span>
+        </div>
+        <div class="card" data-reveal style="--delay:.1s">
           <p><strong>Problem (informal).</strong> On an <span class="mono">n × n</span> grid, place axis-aligned rectangular tiles (no overlaps) so that
           each <em>row</em> and each <em>column</em> has exactly one uncovered unit square (“hole”). Minimize the number of tiles.</p>
 
-          <div class="note tiny">
+          <div class="note tiny" style="margin:16px 0">
             For perfect squares <span class="mono">n = k²</span>, the minimum number of rectangles is
             <span class="mono">n + 2√n - 3</span>.
             Hence <strong>N=4 → 5 tiles</strong> and <strong>N=9 → 12 tiles</strong>.
-            See Evan Chen's solution notes (§2.3) for the general argument and construction details. 
+            See Evan Chen's solution notes (§2.3) for the general argument and construction details.
             <a href="https://web.evanchen.cc/exams/IMO-2025-notes.pdf" target="_blank" rel="noopener">[Solution notes]</a>
           </div>
 
-          <!-- Removed interactive grid visualization for N=4 and N=9 -->
-
-          <p class="tiny muted" style="margin-top:12px">
+          <p class="tiny" style="margin-top:12px">
             Why this bound? Very briefly: label the <em>n</em> holes as a permutation of rows vs. columns, take a longest increasing subsequence (LIS) of length <em>a</em> and a longest decreasing subsequence (LDS) of length <em>b</em>;
             Erdős-Szekeres implies <span class="mono">ab ≥ n</span>, giving a counting lower bound near <span class="mono">n + 2√n</span>.
             For <span class="mono">n = k²</span> there is a matching construction with <span class="mono">(k-1)²</span> interior <span class="mono">k×k</span> tiles plus <span class="mono">4(k-1)</span> boundary tiles,
-            totaling <span class="mono">k² + 2k - 3</span>. See the notes for the exact details and figures. 
+            totaling <span class="mono">k² + 2k - 3</span>. See the notes for the exact details and figures.
             <a href="https://web.evanchen.cc/exams/IMO-2025-notes.pdf" target="_blank" rel="noopener">[Solution notes]</a>
           </p>
 
-          <p class="tiny muted" style="margin-top:6px">
-            This benchmark appears in our paper's appendix as “Rectangular Tiling with One Hole per Row and Column (IMO 2025 P6)” and is modeled with a compact 2D interval-flow MILP. 
+          <p class="tiny" style="margin-top:6px">
+            This benchmark appears in our paper's appendix as “Rectangular Tiling with One Hole per Row and Column (IMO 2025 P6)” and is modeled with a compact 2D interval-flow MILP.
             See Appendix F.5 and H/G for definitions and experiment sizes. <a href="https://arxiv.org/pdf/2508.11850" target="_blank" rel="noopener">[Paper PDF]</a>
           </p>
         </div>
@@ -325,8 +657,11 @@
 
     <section id="get-started">
       <div class="wrap">
-        <h2>Get Started</h2>
-        <div class="grid">
+        <div class="section-intro" data-reveal>
+          <h2>Get Started</h2>
+          <p class="tiny">Clone the repo, install dependencies, and run the pipeline.</p>
+        </div>
+        <div class="grid" data-reveal style="--delay:.1s">
           <div class="card">
             <h3>Install</h3>
             <pre><code># (Optional) create a virtual environment
@@ -336,7 +671,7 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 </code></pre>
-            <p class="tiny muted">Python 3.9+ recommended. Requires a MILP solver (e.g., Gurobi) and filling config templates.</p>
+            <p class="tiny">Python 3.9+ recommended. Requires a MILP solver (e.g., Gurobi) and filling config templates.</p>
           </div>
 
           <div class="card">
@@ -359,22 +694,25 @@ python src/main.py -h
           <div class="card">
             <h3>Evaluate &amp; Verify</h3>
             <pre><code># Optimal Solution Preservation (OSP)
-python experiments/OSP_cuts.py &lt;args&gt;
+python experiments/optimal_solution_preservation_cuts.py &lt;args&gt;
 
 # Evaluate on held-out instances
 python experiments/evaluate_cut.py &lt;args&gt;
 </code></pre>
           </div>
         </div>
-        <p class="tiny muted">For the latest CLI flags and examples, see the repository README.</p>
+        <p class="tiny" style="margin-top:12px">For the latest CLI flags and examples, see the repository README.</p>
         <p><a class="btn" href="https://github.com/milad1378yz/EvoCut" target="_blank" rel="noopener">Open the GitHub Repo</a></p>
       </div>
     </section>
 
     <section id="citation">
       <div class="wrap">
-        <h2>Citation</h2>
-        <div class="card">
+        <div class="section-intro" data-reveal>
+          <h2>Citation</h2>
+          <span class="pill">BibTeX</span>
+        </div>
+        <div class="card" data-reveal style="--delay:.1s">
           <p>Cite the paper as:</p>
           <pre id="bibtex"><code>@article{yazdani2025evocut,
   title={EvoCut: Strengthening Integer Programs via Evolution-Guided Language Models},
@@ -383,16 +721,19 @@ python experiments/evaluate_cut.py &lt;args&gt;
   year={2025},
   doi = {10.48550/arXiv.2508.11850}
 }</code></pre>
-          <button id="copybtn" class="copy tiny" onclick="copyBibtex()">Copy</button>
-          <p class="tiny muted">Also available on <a href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">Hugging Face Papers</a>.</p>
+          <button id="copybtn" class="copy-btn tiny" onclick="copyBibtex()">Copy BibTeX</button>
+          <p class="tiny">Also available on <a href="https://huggingface.co/papers/2508.11850" target="_blank" rel="noopener">Hugging Face Papers</a>.</p>
         </div>
       </div>
     </section>
 
     <section id="resources">
       <div class="wrap">
-        <h2>Resources</h2>
-        <div class="grid">
+        <div class="section-intro" data-reveal>
+          <h2>Resources</h2>
+          <span class="pill">Links</span>
+        </div>
+        <div class="grid" data-reveal style="--delay:.1s">
           <div class="card">
             <h3>Paper</h3>
             <p><a href="https://arxiv.org/abs/2508.11850" target="_blank" rel="noopener">arXiv abstract</a> ·
@@ -420,7 +761,7 @@ python experiments/evaluate_cut.py &lt;args&gt;
   <footer>
     <div class="wrap tiny">
       <div>© 2025 The authors. This site is a static page served via GitHub Pages.</div>
-      <div class="muted">Last updated: <script>document.write(new Date().toISOString().slice(0,10));</script></div>
+      <div>Last updated: <script>document.write(new Date().toISOString().slice(0,10));</script></div>
     </div>
   </footer>
 </body>
