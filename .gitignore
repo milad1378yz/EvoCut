@@ -9,3 +9,8 @@ data/*
 api_tokens.yaml
 
 !*template*
+
+.*/
+*.md
+
+cuts/
