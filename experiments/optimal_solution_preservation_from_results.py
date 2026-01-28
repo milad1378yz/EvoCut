@@ -540,7 +540,11 @@ def check_preservation_for_archive(
             if method == "eval":
                 if problem_name == "jssp":
                     _set_jssp_z_values(cut_model)
-                ok = _check_added_constraints_eval(cut_model, added_constraints, tol=tol)
+                if problem_name == "uc" and hasattr(cut_model, "_uc_ga_eval_max_violation"):
+                    max_viol = float(getattr(cut_model, "_uc_ga_eval_max_violation"))
+                    ok = max_viol <= tol
+                else:
+                    ok = _check_added_constraints_eval(cut_model, added_constraints, tol=tol)
             else:
                 if solver is None:
                     raise ValueError("solver must be provided when method='solve'")
