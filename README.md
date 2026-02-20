@@ -1,11 +1,5 @@
 
 # EvoCut
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](./requirements.txt)
-[![Stars](https://img.shields.io/github/stars/milad1378yz/EvoCut?style=social)](https://github.com/milad1378yz/EvoCut/stargazers)
-![Issues](https://img.shields.io/github/issues/milad1378yz/EvoCut)
-![Repo Size](https://img.shields.io/github/repo-size/milad1378yz/EvoCut)
-![Top Language](https://img.shields.io/github/languages/top/milad1378yz/EvoCut)
-
 **EvoCut** is a Python library that accelerates Mixed-Integer Linear Programming (MILP) by injecting problem-specific cutting planes into the LP relaxation. These cuts reduce the feasible set of the LP relaxation and improve solver efficiency.
 
 ---
@@ -38,7 +32,7 @@ pip install -r requirements.txt
 ```
 
 > **Note:** Python 3.9 recommended.
-> Requires a licensed MILP solver (e.g., [Gurobi](https://www.gurobi.com/)).
+> Requires a licensed MILP solver (e.g.).
 
 ---
 
